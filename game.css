@@ -1,0 +1,101 @@
+* {
+ box-sizing: border-box; 
+}
+
+body {
+  /* width: 500px; */
+  /* margin: 10px auto; */
+  width: 700px;
+  margin: auto;
+  padding: 50px 10px;
+  border: 1px solid black;
+}
+
+.board {
+  border: 1px solid black;
+  padding: 0;
+  margin: auto;
+  overflow: auto;
+  display: inline-block;
+}
+
+.row {
+  display: block;
+}
+
+.block {
+  float: left;
+  overflow: auto;
+  /* width: 90px; */
+  border: 1px solid black;
+}
+
+.row:after {
+  content: " ";
+  display: table;
+  clear: both;
+}
+
+.block-row {
+  overflow: auto;
+}
+
+.cell {
+  width: 30px;
+  height: 30px;
+  border: 1px dashed black;
+  padding: 0;
+  margin: 0;
+  float: left;
+}
+
+ /* remove borders which touch the board's borders */
+.block .block-row:first-child .cell {
+  border-top: none;
+}
+
+.block .block-row:last-child .cell {
+  border-bottom: none;
+}
+
+.block-row .cell:first-child {
+  border-left: none;
+}
+
+.block-row .cell:last-child {
+  border-right: none;
+}
+
+
+
+
+.marked {
+  text-align: center;
+  display: block;
+  font-size: 1.7em;
+}
+
+.marked.x {
+  color: #e20;
+}
+
+.marked.o {
+  color: #02e;
+}
+
+.block.playable {
+  background-color: rgba(125,225,125,.5);
+}
+
+.playable .cell:not(.marked):hover {
+  background-color: #ccc;
+  cursor: pointer;
+}
+
+.block.won-o {
+  background-color: rgba(125,125,225,.5);
+}
+
+.block.won-x {
+  background-color: rgba(225,125,125,.5);
+}

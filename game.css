@@ -3,12 +3,12 @@
 }
 
 body {
-  /* width: 500px; */
-  /* margin: 10px auto; */
   width: 700px;
   margin: auto;
+  margin-bottom: 10%;
   padding: 50px 10px;
   border: 1px solid black;
+  overflow: auto;
 }
 
 .board {
@@ -75,16 +75,17 @@ body {
   font-size: 1.7em;
 }
 
-.marked.x {
+i.icon-remove {
   color: #e20;
 }
 
-.marked.o {
+i.icon-circle-blank {
   color: #02e;
 }
 
-.block.playable {
+.block.playable .cell:not(.marked) {
   background-color: rgba(125,225,125,.5);
+  /* border-color: rgb(125,250,125); */
 }
 
 .playable .cell:not(.marked):hover {
@@ -92,10 +93,12 @@ body {
   cursor: pointer;
 }
 
-.block.won-o {
-  background-color: rgba(125,125,225,.5);
+.block.won-o .cell.marked {
+  /* border-color: rgb(125,125,225); */
+  background-color: rgb(125,125,225);
 }
 
-.block.won-x {
-  background-color: rgba(225,125,125,.5);
+.block.won-x .cell.marked {
+  /* border-color: rgb(225,125,125); */
+  background-color: rgb(225,125,125);
 }

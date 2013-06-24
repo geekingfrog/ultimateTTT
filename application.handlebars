@@ -1,0 +1,50 @@
+<p>
+If you don't know how to play the ultimate tic tac toe,
+<a href="http://mathwithbaddrawings.com/2013/06/16/ultimate-tic-tac-toe/">here are the rules</a> (with some nice drawings ^^)
+</p>
+
+<div>
+  {{#if isWonByX}}
+    <h1><i class="icon-remove"></i> has won !</h1>
+  {{/if}}
+  {{#if isWonByO}}
+    <h1><i class="icon-circle-blank"></i> has won !</h1>
+  {{/if}}
+
+  {{#if currentX}}
+    <h1><i class="icon-remove"></i>'s turn</h1>
+  {{/if}}
+  {{#if currentO}}
+    <h1><i class="icon-circle-blank"></i>'s turn</h1>
+  {{/if}}
+
+</div>
+
+<div class="board">
+  {{#each row in domBoard}}
+  <div class="row">
+    {{#each block in row}}
+    <div {{ bindAttr class=":block block.isPlayable:playable block.isWonByO:won-o block.isWonByX:won-x" }} 
+      >
+        {{#each br in block.blockRow}}
+        <div class="block-row">
+        {{#each br}}
+        <div 
+          {{bindAttr class=":cell isMarked:marked"}}
+          {{action markSquare square}}>
+          {{#if isMarkedByX}}
+            <i class="icon-remove"></i>
+          {{/if}}
+          {{#if isMarkedByO}}
+            <i class="icon-circle-blank"></i>
+          {{/if}}
+        </div>
+        {{/each}}
+        </div>
+        {{/each}}
+      </div>
+    {{/each}}
+  </div>
+  {{/each}}
+</div>
+

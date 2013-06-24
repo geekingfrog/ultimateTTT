@@ -10,10 +10,9 @@
   </head>
 
   <body>
-    <p>
-    If you don't know how to play the ultimate tic tac toe,
-    <a href="http://mathwithbaddrawings.com/2013/06/16/ultimate-tic-tac-toe/">here are the rules</a> (with some nice drawings ^^)
-    </p>
+    <div id="application">
+    
+    </div>
     <div id="gameStatus"> </div>
     <div class="board"> </div>
 
@@ -23,6 +22,9 @@
         socket.on('reload', function() { location.reload() });
     </script>
     <script src="jquery-2.0.2.js" type="text/javascript" charset="utf-8"></script>
+    <script src="handlebars.js" type="text/javascript" charset="utf-8"></script>
+    <script src="ember.js" type="text/javascript" charset="utf-8"></script>
+    <script src="templates.js" type="text/javascript" charset="utf-8"></script>
     <script src="game.js" type="text/javascript" charset="utf-8"></script>
   </body>
 </html>

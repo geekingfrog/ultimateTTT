@@ -1,245 +1,293 @@
-class Cell
-  constructor: (@xCell, @yCell) ->
-    @markedBy = null # 1: marked by X
+"use strict"
 
-  mark: (game) ->
-    @markedBy = game.currentPlayer
-    game.lastMove = this
-    updateDomBlock(@getEnclosingBlock(game))
-    game.markPlayableBlocks()
+window.App = Em.Application.create({
+  rootElement: "#application"
+})
 
-  getEnclosingBlock: (game) ->
-    xBlock = Math.floor((@xCell-1)/3)
-    yBlock = Math.floor((@yCell-1)/3)
-    return game.blocks[xBlock][yBlock]
+################################################################################ 
+# A block is composed of 9 squares, and there are 9 blocks in a board.
+# A block has (x,y) as coordinate to indicate its position inside the board.
+# The x axis is from left to right and starts at 0.
+# The y axis is from top to bottom and starts at 0.
+# ------------------------
+# | (0,0) | (1,0)| (2,0) |
+# ------------------------
+# | (0,1) | (1,1)| (2,1) |
+# ------------------------
+# | (0,2) | (1,2)| (2,2) |
+# ------------------------
+#
+# To acces a given square from a block, one calls b.getSquare(xSquare, ySquare)
+# where xSquare and ySquare are the coordinate of the square in the block's frame
+################################################################################ 
+App.Block = Em.Object.extend({
+  x: null
+  y: null
+  board: null
 
-
-# the cell with coordinate (x, y) is in blocks.cell(y,x)
-class Block
-  constructor: (@x, @y) ->
-    @isPlayable = -> true
-    @isWon = null
-    @cells = [3,2,1].map( (yCell) =>
-      return [1,2,3].map( (xCell) =>
-        return new Cell( (@x-1)*3+xCell, (@y-1)*3+yCell)
-      )
+  squares: ( ->
+    block = this
+    [0..8].map( (i) ->
+      return App.Square.create({
+        block: block
+        xBlock: i%3
+        yBlock: Math.floor(i/3)
+      })
     )
+  ).property()
 
-  isFull: ->
-    @cells.every( (row) ->
-      row.every( (cell) -> cell.markedBy isnt null)
+  getSquare: (x, y) ->
+    return @get("squares").objectAt(x+y*3)
+
+  isFull: ( ->
+    @get("squares").every( (square) -> square.get("markedBy") != null)
+  ).property("squares.@each.markedBy")
+
+  hasBeenWon: null
+  wonBy: ( ->
+    if @get("hasBeenWon")
+      return @get("hasBeenWon")
+
+    squares = @get("squares")
+    accessor = (square) -> square.get("markedBy")
+    winner = arrayWonBy(squares, accessor)
+    if winner
+      @set("hasBeenWon", winner)
+      return winner
+  ).property("squares.@each.markedBy")
+
+})
+
+################################################################################ 
+# A square is the basic element of the board. There are 81 squares.
+# A square has two coordinate system. The global one (x,y), which represent
+# its position inside the board, and a block-relative one (xBlock, yBlock)
+# which represents its position inside its block.
+# The x-axis and y-axis are the same for squares and blocks (hopefully)
+#
+# So the center square in the block with coordinate (3,2) has:
+# x = 8 ; y = 5
+# xBlock = 1 ; yBlock = 1
+#
+# A square is created inside a block, using the block's frame. The absolute
+# position of the square in the board's frame is computed from the block's
+# and square's position
+################################################################################ 
+App.Square = Em.Object.extend({
+  xBlock: null
+  yBlock: null
+  block: null
+
+  markedBy: null # which player marked this square, 'x' or 'o'
+  x: ( ->
+    @get("block.x")*3+@get("xBlock")
+  ).property("block.x", "xBlock")
+  y: ( ->
+    @get("block.y")*3+@get("yBlock")
+  ).property("block.y", "yBlock")
+
+  set: ->
+    @_super.apply(this, arguments)
+    @get("block.board").set("lastMove", this)
+})
+
+################################################################################ 
+# A board is composed of an array of blocks
+# To acces a given block, one calls board.getBlock(x,y) with x and y
+# the coordinates of the block.
+# To access a square, one calls board.getSquare(x,y) with x and y the
+# position of the square in the board's frame.
+################################################################################ 
+App.Board = Em.Object.extend({
+  blocks: ( ->
+    board = this
+    [0..8].map( (i) ->
+      return App.Block.create({
+        board: board
+        x: Math.floor(i/3)
+        y: i%3
+      })
     )
+  ).property()
 
-  # 1 if X has won the block, 0 if O has won, null otherwise
-  wonBy: ->
-    if @isWon isnt null
-      return @isWon
+  getBlock: (x, y) ->
+    return @get("blocks").objectAt(x+3*y)
 
-    winner = arrayWonBy(@cells, (cell) -> cell.markedBy)
-    if winner isnt null
-      @isWon = winner
-    return winner
+  getSquare: (x, y) ->
+    block = @get("blocks").objectAt(Math.floor(x/3), Math.floor(y/3))
+    xBlock = (x - block.get("x"))%3
+    yBlock = (y - block.get("y"))%3
+    return block.getSquare(xBlock, yBlock)
 
-  print: ->
-    res = "\n"
-    for row in @cells
-      for cell in row
-        res += cell.markedBy+" "
-      res += "\n"
+  isFull: ( ->
+    @get("blocks").every( (block) -> block.get("isFull"))
+  ).property("blocks.@each.isFull")
 
-    console.log res
+  lastMove: null
+
+  hasBeenWon: null
+  wonBy: ( ->
+    if @get("hasBeenWon")
+      return @get("hasBeenWon")
+
+    blocks = @get("blocks")
+    accessor = (block) -> block.get("wonBy")
+    winner = arrayWonBy(blocks, accessor)
+    if winner
+      console.log "board won by: #{winner}"
+      @set("hasBeenWon", winner)
+      return winner
+  ).property("blocks.@each.wonBy")
+
+})
 
 
+################################################################################ 
+# Utility function to check if an array has been won by a player
+# The array has a square-length (n*n) and it's assume that the first n elements
+# represent the first line.
+# An array has been won by a player if all element on a row, a column or a
+# diagonal are marked by the same player.
+# @param array
+# @param accessor: how to check if the given element has been marked by
+# a player (accessor(element) should return null or the player who has marked
+# the element)
+################################################################################ 
+window.arrayWonBy = (array, accessor) ->
+  n = Math.sqrt(array.length)
 
-class Game
-  constructor: ->
-    @currentPlayer = 1 #1 = 'X', 0 = 'O'
-    @isFinished = false
-    @blocks = [1,2,3].map( (x) ->
-      return [1,2,3].map( (y) ->
-        return new Block(x,y)
-      )
+  # check for rows
+  for i in [0...n]
+    player = accessor(array.objectAt(i*n))
+    if player is null
+      continue
+    isWon = array.slice(i*n+1, i*n+1 + n-1).every( (el) ->
+      r = accessor(el) is player
+      return r
     )
-
-  nextTurn: ->
-    winner = arrayWonBy(@blocks, (block) -> block.wonBy())
-    if winner isnt null
-      @isFinished = true
-      @winner = winner
-    else
-      @currentPlayer = 1-@currentPlayer
-    return
-
-  markPlayableBlocks: ->
-    target = {
-      x: @lastMove.xCell%3
-      y: @lastMove.yCell%3
-    }
-    target.x = 3 if target.x is 0
-    target.y = 3 if target.y is 0
-
-    for rowBlocks in @blocks
-      for block in rowBlocks
-        status = block.isPlayable()
-        isTargetBlock = (block.x is target.x) and (block.y is target.y)
-
-        if isTargetBlock
-          if not block.isFull()
-            block.isPlayable = -> true
-            updateDomBlock(block)
-          else
-            # mark all non full blocks as playable and update dom
-            for r in @blocks
-              for b in r
-                if b.isFull()
-                  b.isPlayable = -> false
-                else
-                  b.isPlayable = -> true
-                updateDomBlock(b)
-            return
-        else
-          block.isPlayable = -> false
-          updateDomBlock(block)
-
-# takes an array of array (3x3) and, using the accessor function
-# on each elements: accessor(el), check if the array of array
-# has been won by a player. This is used to check if a block or
-# the board has been won.
-arrayWonBy = (array, accessor) ->
-  # 3 in a row ?
-  for row in array
-    player = accessor(row[0])
-    continue if player is null
-
-    for cell in row
-      if accessor(cell) isnt player
-        player = null
-
-    if player isnt null
+    if isWon
       return player
 
-  # 3 in a column ?
-  for col in [0..2]
-    player = accessor(array[0][col])
+  # check for columns
+  for i in [0..n-1]
+    player = accessor(array.objectAt(i))
     continue if player is null
-    for y in [1..2]
-      if player isnt accessor(array[y][col])
-        player = null
-    if player isnt null
+    isWon = true
+    for j in [1..n-1]
+      if accessor(array.objectAt(i+j*n)) isnt player
+        isWon = false
+        break
+    if isWon
       return player
 
-  # diagonal ?
-  potential = accessor(array[1][1])
-  diag = potential isnt null
-  diag = diag and (potential is accessor(array[0][0])) and (potential is accessor(array[2][2]))
-  diag = diag or (potential is accessor(array[0][2])) and (potential is accessor(array[2][0]))
-  if diag
-    return potential
+  # diagonals
+  player = accessor(array.objectAt(0))
+  if player isnt null
+    isWon = true
+    for i in [1..n-1]
+      if accessor(array.objectAt(i+i*n)) isnt player
+        isWon = false
+        break
+    if isWon
+      return player
+
+  player = accessor(array.objectAt(n-1))
+  if player isnt null
+    isWon = true
+    for i in [1..n-1]
+      if accessor(array.objectAt(n-1-i + i*n)) isnt player
+        isWon = false
+        break
+    if isWon
+      return player
 
   return null
 
+window.a = [
+  'x', 'o', 'x'
+  'o', 'x', 'o'
+  'x', 'x', 'o'
+]
 
+window.board = App.Board.create()
+App.ApplicationController = Em.Controller.extend({
+  # board: App.Board.create()
+  board: board
 
+  isWonByX: ( -> @get("board.wonBy") is 'x').property("board.wonBy")
+  isWonByO: ( -> @get("board.wonBy") is 'o').property("board.wonBy")
 
-window.game = new Game()
-# game.blocks[1][1].cells[0][0].markedBy = 1
-# game.blocks[1][1].cells[0][1].markedBy = 1
-# game.blocks[1][1].cells[0][2].markedBy = 1
-# game.blocks[1][1].cells[1][0].markedBy = 1
-# game.blocks[1][1].cells[1][1].markedBy = 1
-# game.blocks[1][1].cells[1][2].markedBy = 1
-# game.blocks[1][1].cells[2][0].markedBy = 1
-# game.blocks[1][1].cells[2][1].markedBy = 1
-# game.blocks[1][1].cells[2][2].markedBy = 1
+  currentX: ( -> @get("currentPlayer") is 'x').property("currentPlayer")
+  currentO: ( -> @get("currentPlayer") is 'o').property("currentPlayer")
 
-init = (game) ->
-  target = $(".board:last")
+  # create the nested structure needed to generate the board in html
+  domBoard: ( ->
+    board = @get("board")
+    rows = [0..2].map( (i) ->
+      [
+        board.getBlock(i,0)
+        board.getBlock(i,1)
+        board.getBlock(i,2)
+      ]
+    ).map( (rowBlock) =>
+      rowBlock.map( (block) =>
+        Em.Object.extend({
+          block: block
+          blockRow: @makeBlockRow(block)
+          isWonByO: ( -> @get("block.wonBy") is 'o').property("block.wonBy")
+          isWonByX: ( -> @get("block.wonBy") is 'x').property("block.wonBy")
+          isPlayable: ( ->
+            if @get("block.isFull")
+              return false
 
-  # Generate a board. x axis is from left to right, y axis is from bottom to top.
-  # So the bottom left cell is at (1,1)
-  for y in [3..1]
-    row = $("<div>").addClass("row").attr("id", "row-#{y}")
+            lastMove = @get("block.board.lastMove")
+            if lastMove is null
+              return true
+            targetBlock = @get("block.board").getBlock(
+              lastMove.get("xBlock"), lastMove.get("yBlock")
+            )
+            if targetBlock.get("wonBy")
+              # can play anywhere if the targetted block has already been won
+              return true
+            else
+              return targetBlock is @get("block")
 
-    for x in [1..3]
-      block = $("<div>").addClass("block").attr("id", "block-#{x}-#{y}")
-      if game.blocks[x-1][y-1].isPlayable() and not game.blocks[x-1][y-1].isFull()
-        block.addClass("playable")
-      row.append block
+          ).property("block", "block.board.lastMove", "block.board.blocks.@each")
+        }).create()
+      )
+    )
+    console.log "returning: ", rows
+    return rows
+  ).property("board")
 
-      for yBlock in [3..1]
-        blockRow = $("<div>").addClass("block-row")
-        for xBlock in [1..3]
-          idX = (x-1)*3+xBlock
-          idY = (y-1)*3+yBlock
-          cell = $("<div>").addClass("cell").attr("id", "cell-#{idX}-#{idY}")
-          cell.data("cell", game.blocks[x-1][y-1].cells[3-yBlock][xBlock-1])
-          blockRow.append cell
-        block.append blockRow
-
-    target.append row
-
-# update the dom element gameStatus
-updateGameStatus = (game) ->
-  if game.isFinished
-    $(".cell").unbind("click")
-    if game.winner is 0
-      icon = "icon-circle-blank"
-    else
-      icon = "icon-remove"
-    $("#gameStatus").html("<h1>Game won by <i class='#{icon}'></i> !</h1>")
-    $(".block.playable").each -> $(this).removeClass "playable"
-  else
-    if game.currentPlayer is 0
-      icon = "icon-circle-blank"
-    else
-      icon = "icon-remove"
-    $("#gameStatus").html("<h1><i class='#{icon}'></i>'s turn</h1>")
-
-markDomCell = (domCell, game) ->
-  if game.currentPlayer is 0
-    icon = "icon-circle-blank"
-  else
-    icon = "icon-remove"
-
-  domCell.html("<i class='#{icon}'></i>")
-  domCell.addClass("marked")
-
-updateDomBlock = (gameBlock) ->
-  # console.log "game block is: full? #{gameBlock.isFull()} | wonBy? #{gameBlock.wonBy()}"
-  domBlock = $("#block-#{gameBlock.x}-#{gameBlock.y}")
-
-  if gameBlock.wonBy() isnt null
-    winner = if gameBlock.wonBy() is 0 then 'o' else 'x'
-    domBlock.addClass("won-#{winner}")
-
-  if gameBlock.isFull()
-    domBlock.removeClass("playable")
-  else if gameBlock.isPlayable()
-    domBlock.addClass("playable")
-  else
-    domBlock.removeClass("playable")
-
-
-
-$(document).ready ->
-  init(game)
-  updateGameStatus(game)
-  
-  # attach listener to cells
-  $(".cell").each ->
-    $(this).bind("click", (ev, foo, bar, baz) ->
-      coordinates = ev.target.id.split('-')
-      x = coordinates[1]
-      y = coordinates[2]
-      # console.log "cell(#{x}-#{y}) clicked: ", ev.target
-      # console.log "cell from data: ", $(ev.target).data("cell")
-      domCell = $(ev.delegateTarget)
-      gameCell = domCell.data("cell")
-      if domCell.closest(".block").hasClass("playable") and not domCell.html()
-        markDomCell(domCell, game)
-        gameCell.mark(game)
-        game.nextTurn()
-        updateGameStatus(game)
+  makeBlockRow: (block) ->
+    return [0..2].map( (i) ->
+      [
+        block.getSquare(i,0)
+        block.getSquare(i,1)
+        block.getSquare(i,2)
+      ]
+    ).map( (blockRow) =>
+      blockRow.map( (square) =>
+        Em.Object.extend({
+          square: square
+          isMarked: ( -> @get("square.markedBy") isnt null).property("square.markedBy")
+          isMarkedByX: ( -> @get("square.markedBy") is 'x').property("square.markedBy")
+          isMarkedByO: ( -> @get("square.markedBy") is 'o').property("square.markedBy")
+        }).create()
+      )
     )
 
+  currentPlayer: 'x'
+  nextTurn: ->
+    if @get("currentPlayer") is 'x'
+      @set("currentPlayer", 'o')
+    else
+      @set("currentPlayer", 'x')
 
+  markSquare: (cell) ->
+    console.log "marking cell: ", cell
+    cell.set("markedBy", @get("currentPlayer"))
+    @nextTurn()
+
+})

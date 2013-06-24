@@ -2,7 +2,7 @@
  box-sizing: border-box; 
 }
 
-body {
+#application {
   width: 700px;
   margin: auto;
   margin-bottom: 10%;
@@ -50,19 +50,19 @@ body {
 }
 
  /* remove borders which touch the board's borders */
-.block .block-row:first-child .cell {
+.block .block-row:first-of-kind .cell {
   border-top: none;
 }
 
-.block .block-row:last-child .cell {
+.block .block-row:last-of-kind .cell {
   border-bottom: none;
 }
 
-.block-row .cell:first-child {
+.block-row .cell:first-of-kind {
   border-left: none;
 }
 
-.block-row .cell:last-child {
+.block-row .cell:last-of-kind {
   border-right: none;
 }
 

@@ -6,6 +6,10 @@
     "express": "3.x",
     "node-watch": "~0.3.3",
     "socket.io": "~0.9.14",
-    "lodash": "~1.2.1"
+    "lodash": "~1.2.1",
+    "grunt-contrib-coffee": "~0.7.0",
+    "grunt-contrib-watch": "~0.4.4",
+    "grunt": "~0.4.1",
+    "grunt-ember-templates": "=0.4.8"
   }
 }

@@ -56,6 +56,11 @@ App.Block = Em.Object.extend({
       return winner
   ).property("squares.@each.markedBy")
 
+  # returns the array representation of the block's squares
+  serialize: ->
+    @get("squares").map( (square) -> square.get("markedBy"))
+
+
 })
 
 ################################################################################ 
@@ -111,7 +116,7 @@ App.Board = Em.Object.extend({
   ).property()
 
   getBlock: (x, y) ->
-    return @get("blocks").objectAt(x+3*y)
+    return @get("blocks").objectAt(x*3+y)
 
   getSquare: (x, y) ->
     block = @get("blocks").objectAt(Math.floor(x/3), Math.floor(y/3))
@@ -225,9 +230,9 @@ App.ApplicationController = Em.Controller.extend({
     board = @get("board")
     rows = [0..2].map( (i) ->
       [
-        board.getBlock(i,0)
-        board.getBlock(i,1)
-        board.getBlock(i,2)
+        board.getBlock(0,i)
+        board.getBlock(1,i)
+        board.getBlock(2,i)
       ]
     ).map( (rowBlock) =>
       rowBlock.map( (block) =>
@@ -263,9 +268,9 @@ App.ApplicationController = Em.Controller.extend({
   makeBlockRow: (block) ->
     return [0..2].map( (i) ->
       [
-        block.getSquare(i,0)
-        block.getSquare(i,1)
-        block.getSquare(i,2)
+        block.getSquare(0,i)
+        block.getSquare(1,i)
+        block.getSquare(2,i)
       ]
     ).map( (blockRow) =>
       blockRow.map( (square) =>

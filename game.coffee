@@ -25,17 +25,6 @@ App.Block = Em.Object.extend({
   y: null
   board: null
 
-  squares: ( ->
-    block = this
-    [0..8].map( (i) ->
-      return App.Square.create({
-        block: block
-        xBlock: i%3
-        yBlock: Math.floor(i/3)
-      })
-    )
-  ).property()
-
   getSquare: (x, y) ->
     return @get("squares").objectAt(x+y*3)
 
@@ -60,6 +49,31 @@ App.Block = Em.Object.extend({
   serialize: ->
     @get("squares").map( (square) -> square.get("markedBy"))
 
+
+})
+
+App.Block.reopenClass({
+  createBlock: (opts) ->
+    block = @create(opts)
+    squares = [0..8].map( (i) ->
+      return App.Square.create({
+        block: block
+        x: i%3
+        y: Math.floor(i/3)
+      })
+    )
+    block.set("squares", squares)
+    return block
+
+  materialize: (opts, marks) ->
+    block = @createBlock(opts)
+    marks.forEach( (mark, index) ->
+      return unless mark
+      xBlock = index%3
+      yBlock = Math.floor(index/3)
+      block.getSquare(xBlock,yBlock).set("markedBy", mark)
+    )
+    return block
 
 })
 
@@ -104,17 +118,6 @@ App.Square = Em.Object.extend({
 # position of the square in the board's frame.
 ################################################################################ 
 App.Board = Em.Object.extend({
-  blocks: ( ->
-    board = this
-    [0..8].map( (i) ->
-      return App.Block.create({
-        board: board
-        x: Math.floor(i/3)
-        y: i%3
-      })
-    )
-  ).property()
-
   getBlock: (x, y) ->
     return @get("blocks").objectAt(x*3+y)
 
@@ -144,8 +147,45 @@ App.Board = Em.Object.extend({
       return winner
   ).property("blocks.@each.wonBy")
 
+  serialize: ->
+    {
+      marks: [].concat.apply([], @get("blocks").map( (block) -> block.serialize()))
+      lastMove: {x: @get("lastMove.x"), y: @get("lastMove.y")}
+    }
 })
 
+App.Board.reopenClass({
+  createBoard: ->
+    board = @create()
+    blocks = [0..8].map( (i) ->
+      return App.Block.createBlock({
+        board: board
+        x: Math.floor(i/3)
+        y: i%3
+      })
+    )
+    board.set("blocks", blocks)
+    return board
+
+  materialize: ({marks, lastMove}) ->
+    board = @create()
+    blocks = [0..8].map( (i) ->
+      xBlock = i%3
+      yBlock = Math.floor(i/3)
+      return App.Block.materialize({board: board, x: xBlock, y: yBlock},
+        marks.slice(i*9, (i+1)*9-1)
+      )
+    )
+    board.set("blocks", blocks)
+    board.set("lastMove", board.getSquare(lastMove.x, lastMove.y))
+    return board
+})
+
+window.stored = {
+  marks: ["x", null, null, null, null, null, null, null, "o", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "o", null, null, null, null, null, null, null, null, "x", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "x", null, null, null, null, null, null, null]
+  lastMove: {x: 5, y:5 }
+}
+window.stored = JSON.parse('{"marks":[null,null,null,null,"x",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"x",null,null,null,null,"o","o","o",null,"x",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"lastMove":{"x":5,"y":3}}')
 
 ################################################################################ 
 # Utility function to check if an array has been won by a player
@@ -214,7 +254,8 @@ window.a = [
   'x', 'x', 'o'
 ]
 
-window.board = App.Board.create()
+# window.board = App.Board.createBoard()
+window.board = App.Board.materialize(stored)
 App.ApplicationController = Em.Controller.extend({
   # board: App.Board.create()
   board: board

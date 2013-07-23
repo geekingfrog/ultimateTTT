@@ -10,11 +10,11 @@ window.App = Em.Application.create({
 # The x axis is from left to right and starts at 0.
 # The y axis is from top to bottom and starts at 0.
 # ------------------------
-# | (0,0) | (1,0)| (2,0) |
+# | (0,0) | (1,0) | (2,0) |
 # ------------------------
-# | (0,1) | (1,1)| (2,1) |
+# | (0,1) | (1,1) | (2,1) |
 # ------------------------
-# | (0,2) | (1,2)| (2,2) |
+# | (0,2) | (1,2) | (2,2) |
 # ------------------------
 #
 # To acces a given square from a block, one calls b.getSquare(xSquare, ySquare)
@@ -49,6 +49,12 @@ App.Block = Em.Object.extend({
   serialize: ->
     @get("squares").map( (square) -> square.get("markedBy"))
 
+  print: ->
+    map = @serialize().map( (s) ->
+      if s then return s else return "-"
+    )
+    console.log map
+    return
 
 })
 
@@ -119,12 +125,12 @@ App.Square = Em.Object.extend({
 ################################################################################ 
 App.Board = Em.Object.extend({
   getBlock: (x, y) ->
-    return @get("blocks").objectAt(x*3+y)
+    return @get("blocks").objectAt(x+y*3)
 
   getSquare: (x, y) ->
-    block = @get("blocks").objectAt(Math.floor(x/3), Math.floor(y/3))
-    xBlock = (x - block.get("x"))%3
-    yBlock = (y - block.get("y"))%3
+    block = @get("blocks").objectAt(Math.floor(x/3)+Math.floor(y/3)*3)
+    xBlock = (x - block.get("x")*3)
+    yBlock = (y - block.get("y")*3)
     return block.getSquare(xBlock, yBlock)
 
   isFull: ( ->
@@ -167,13 +173,17 @@ App.Board.reopenClass({
     board.set("blocks", blocks)
     return board
 
+  ################################################################################ 
+  # returns an array where squares are null, "x" or "o". A block is read from
+  # left to right, from top to bottom to build the array.
+  ################################################################################ 
   materialize: ({marks, lastMove}) ->
     board = @create()
     blocks = [0..8].map( (i) ->
       xBlock = i%3
       yBlock = Math.floor(i/3)
       return App.Block.materialize({board: board, x: xBlock, y: yBlock},
-        marks.slice(i*9, (i+1)*9-1)
+        marks.slice(i*9, (i+1)*9)
       )
     )
     board.set("blocks", blocks)
@@ -269,6 +279,32 @@ App.ApplicationController = Em.Controller.extend({
   # create the nested structure needed to generate the board in html
   domBoard: ( ->
     board = @get("board")
+
+    DomBlock = Em.Object.extend({
+      block: null
+      blockRow: null
+      isWonByO: ( -> @get("block.wonBy") is 'o').property("block.wonBy")
+      isWonByX: ( -> @get("block.wonBy") is 'x').property("block.wonBy")
+      isPlayable: ( ->
+        if @get("block.isFull")
+          return false
+
+        lastMove = @get("block.board.lastMove")
+        if lastMove is null
+          return true
+        targetBlock = @get("block.board").getBlock(
+          lastMove.get("x"), lastMove.get("y")
+        )
+        if targetBlock.get("wonBy")
+          # can play anywhere if the targetted block has already been won
+          return true
+        else
+          return targetBlock is @get("block")
+
+      ).property("block", "block.board.lastMove", "block.board.blocks.@each")
+    })
+
+
     rows = [0..2].map( (i) ->
       [
         board.getBlock(0,i)
@@ -277,29 +313,7 @@ App.ApplicationController = Em.Controller.extend({
       ]
     ).map( (rowBlock) =>
       rowBlock.map( (block) =>
-        Em.Object.extend({
-          block: block
-          blockRow: @makeBlockRow(block)
-          isWonByO: ( -> @get("block.wonBy") is 'o').property("block.wonBy")
-          isWonByX: ( -> @get("block.wonBy") is 'x').property("block.wonBy")
-          isPlayable: ( ->
-            if @get("block.isFull")
-              return false
-
-            lastMove = @get("block.board.lastMove")
-            if lastMove is null
-              return true
-            targetBlock = @get("block.board").getBlock(
-              lastMove.get("xBlock"), lastMove.get("yBlock")
-            )
-            if targetBlock.get("wonBy")
-              # can play anywhere if the targetted block has already been won
-              return true
-            else
-              return targetBlock is @get("block")
-
-          ).property("block", "block.board.lastMove", "block.board.blocks.@each")
-        }).create()
+        return DomBlock.create({block: block, blockRow: @makeBlockRow(block)})
       )
     )
     console.log "returning: ", rows
@@ -331,9 +345,9 @@ App.ApplicationController = Em.Controller.extend({
     else
       @set("currentPlayer", 'x')
 
-  markSquare: (cell) ->
-    console.log "marking cell: ", cell
-    cell.set("markedBy", @get("currentPlayer"))
+  markSquare: (square, domBlock) ->
+    return unless domBlock.get("isPlayable")
+    square.set("markedBy", @get("currentPlayer"))
     @nextTurn()
 
 })

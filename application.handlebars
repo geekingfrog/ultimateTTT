@@ -4,18 +4,21 @@ If you don t know how to play the ultimate tic tac toe,
 </p>
 
 <div>
-  {{#if isWonByX}}
-    <h1><i class="icon-remove"></i> has won !</h1>
-  {{/if}}
-  {{#if isWonByO}}
-    <h1><i class="icon-circle-blank"></i> has won !</h1>
-  {{/if}}
 
-  {{#if currentX}}
-    <h1><i class="icon-remove"></i>'s turn</h1>
-  {{/if}}
-  {{#if currentO}}
-    <h1><i class="icon-circle-blank"></i>'s turn</h1>
+  {{#if board.wonBy}}
+    {{#if isWonByX}}
+      <h1><i class="icon-remove"></i> has won !</h1>
+    {{/if}}
+    {{#if isWonByO}}
+      <h1><i class="icon-circle-blank"></i> has won !</h1>
+    {{/if}}
+  {{else}}
+    {{#if currentX}}
+      <h1><i class="icon-remove"></i>'s turn</h1>
+    {{/if}}
+    {{#if currentO}}
+      <h1><i class="icon-circle-blank"></i>'s turn</h1>
+    {{/if}}
   {{/if}}
 
 </div>

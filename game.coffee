@@ -188,14 +188,28 @@ App.Board.reopenClass({
     )
     board.set("blocks", blocks)
     board.set("lastMove", board.getSquare(lastMove.x, lastMove.y))
+    if board.get("lastMove.markedBy") is "x"
+      board.set("currentPlayer", "o")
+    else
+      board.set("currentPlayer", "x")
     return board
 })
 
 window.stored = {
-  marks: ["x", null, null, null, null, null, null, null, "o", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "o", null, null, null, null, null, null, null, null, "x", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "x", null, null, null, null, null, null, null]
-  lastMove: {x: 5, y:5 }
+  marks: [
+    "x", "x", "x", null, null, null, null, null, "o",
+    "x", "x", "x", null, null, null, null, null, null,
+    "x", "x", null, null, null, null, null, null, null,
+    null, null, null, null, "o", null, null, null, null,
+    null, null, "o", null, "x", null, null, null, null,
+    null, null, null, null, null, null, null, null, null,
+    null, null, null, null, null, null, null, null, null,
+    null, null, null, null, null, null, null, null, null,
+    null, "x", null, null, null, null, null, null, null]
+  lastMove: {x: 5, y: 3}
 }
-window.stored = JSON.parse('{"marks":[null,null,null,null,"x",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"x",null,null,null,null,"o","o","o",null,"x",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"lastMove":{"x":5,"y":3}}')
+
+# window.stored = JSON.parse('{"marks":[null,null,null,null,"x",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"x",null,null,null,null,"o","o","o",null,"x",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"lastMove":{"x":5,"y":3}}')
 
 ################################################################################ 
 # Utility function to check if an array has been won by a player
@@ -267,14 +281,13 @@ window.a = [
 # window.board = App.Board.createBoard()
 window.board = App.Board.materialize(stored)
 App.ApplicationController = Em.Controller.extend({
-  # board: App.Board.create()
   board: board
 
   isWonByX: ( -> @get("board.wonBy") is 'x').property("board.wonBy")
   isWonByO: ( -> @get("board.wonBy") is 'o').property("board.wonBy")
 
-  currentX: ( -> @get("currentPlayer") is 'x').property("currentPlayer")
-  currentO: ( -> @get("currentPlayer") is 'o').property("currentPlayer")
+  currentX: ( -> @get("board.currentPlayer") is 'x').property("board.currentPlayer")
+  currentO: ( -> @get("board.currentPlayer") is 'o').property("board.currentPlayer")
 
   # create the nested structure needed to generate the board in html
   domBoard: ( ->
@@ -286,7 +299,7 @@ App.ApplicationController = Em.Controller.extend({
       isWonByO: ( -> @get("block.wonBy") is 'o').property("block.wonBy")
       isWonByX: ( -> @get("block.wonBy") is 'x').property("block.wonBy")
       isPlayable: ( ->
-        if @get("block.isFull")
+        if @get("block.isFull") or @get("block.board.wonBy")?
           return false
 
         lastMove = @get("block.board.lastMove")
@@ -316,7 +329,6 @@ App.ApplicationController = Em.Controller.extend({
         return DomBlock.create({block: block, blockRow: @makeBlockRow(block)})
       )
     )
-    console.log "returning: ", rows
     return rows
   ).property("board")
 
@@ -340,10 +352,10 @@ App.ApplicationController = Em.Controller.extend({
 
   currentPlayer: 'x'
   nextTurn: ->
-    if @get("currentPlayer") is 'x'
-      @set("currentPlayer", 'o')
+    if @get("board.currentPlayer") is 'x'
+      @set("board.currentPlayer", 'o')
     else
-      @set("currentPlayer", 'x')
+      @set("board.currentPlayer", 'x')
 
   markSquare: (square, domBlock) ->
     return unless domBlock.get("isPlayable")

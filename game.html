@@ -18,13 +18,14 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        socket = io.connect('/');
-        socket.on('reload', function() { location.reload() });
+        window.socket = io.connect();
+        window.socket.on('reload', function() { location.reload() });
     </script>
     <script src="jquery-2.0.2.js" type="text/javascript" charset="utf-8"></script>
     <script src="handlebars.js" type="text/javascript" charset="utf-8"></script>
     <script src="ember.js" type="text/javascript" charset="utf-8"></script>
     <script src="templates.js" type="text/javascript" charset="utf-8"></script>
+    <script src="bower_components/lodash/dist/lodash.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="game.js" type="text/javascript" charset="utf-8"></script>
   </body>
 </html>

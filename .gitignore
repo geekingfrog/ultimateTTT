@@ -4,3 +4,4 @@ bower_components
 game.js
 server.js
 templates.js
+playersList.js

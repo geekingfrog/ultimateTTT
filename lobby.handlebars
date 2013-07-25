@@ -1,0 +1,56 @@
+Welcome: <div class="control-group success">
+{{view App.PlayerNameView type=text valueBinding=currentPlayer.name maxlength=12}}
+<i class="input-icon icon-pencil"></i>
+</div>
+current player status: {{ currentPlayer.status }}
+
+opponent: {{ currentPlayer.opponent }}
+
+{{#if currentPlayer.isChallenged}}
+<div class="alert-box">
+  You ve been challenged by {{ currentPlayer.opponent.name }}!
+</div>
+<div class="center">
+  <a href="javascript://" class="button" {{ action acceptChallenge }}> Accept </a>
+  <a href="javascript://" class="button button-secondary" {{ action declineChallenge }}>
+    Decline
+  </a>
+</div>
+{{/if}}
+
+<ul class="players-list">
+  {{#each player in otherPlayers}}
+  <li>
+  {{#if player.isIdle}}
+  <i {{ bindAttr class=":icon-circle :status player.isIdle:idle:inGame" }}
+    {{ bindAttr title="player.isIdle" }}
+    ></i>
+  {{/if}}
+
+  {{#if player.isChallenged}}
+    <i class="icon-spin icon-spinner status"></i>
+  {{/if}}
+
+  {{#if player.isWaiting}}
+    <i class="icon-exclamation"></i>
+  {{/if}}
+
+  {{ player.name }}
+
+  {{#if player.isIdle}}
+  <a href="javascript://" class="button" {{ action playAgainst player }}>Play against</a>
+  {{/if}}
+
+  {{#if player.isChallenged}}
+    <span>Challenged !</span>
+  {{/if}}
+
+  {{#if player.isWaiting}}
+    <span>Challenged you</span>
+  {{/if}}
+
+  </li>
+  {{else}}
+  no other player connected :/
+  {{/each}}
+</ul>

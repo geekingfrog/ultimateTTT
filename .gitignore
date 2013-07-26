@@ -1,7 +1,8 @@
 node_modules
 bower_components
 
-game.js
-server.js
-templates.js
-playersList.js
+*.js
+!ember.js
+!handlebars.js
+!jquery*.js
+

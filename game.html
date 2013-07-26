@@ -23,7 +23,18 @@
     <script src="ember.js" type="text/javascript" charset="utf-8"></script>
     <script src="templates.js" type="text/javascript" charset="utf-8"></script>
     <script src="bower_components/lodash/dist/lodash.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="game.js" type="text/javascript" charset="utf-8"></script>
-    <script src="playersList.js" type="text/javascript" charset="utf-8"></script>
+
+    <script type="text/javascript" charset="utf-8">
+      window.App = Ember.Application.create({
+        rootElement: "#application"
+      });
+    </script>
+
+    <script src="validatedView.js" type="text/javascript" charset="utf-8"></script>
+    <script src="gameDefinition.js" type="text/javascript" charset="utf-8"></script>
+    <script src="index.js" type="text/javascript" charset="utf-8"></script>
+    <script src="multiplayer.js" type="text/javascript" charset="utf-8"></script>
+    <script src="hotseat.js" type="text/javascript" charset="utf-8"></script>
+    <script src="router.js" type="text/javascript" charset="utf-8"></script>
   </body>
 </html>

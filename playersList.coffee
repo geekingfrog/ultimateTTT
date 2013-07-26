@@ -12,11 +12,14 @@ App.Player = Ember.StateManager.extend({
     challengeDeclined: (player) ->
       player.transitionTo "idle"
       player.set("opponent", null)
-    challengeAccepted: (player) ->
-      player.transitionTo "inGame"
+    challengeAccepted: (player) -> player.transitionTo "inGame"
+    cancelChallenge: (player) -> player.transitionTo "idle"
   })
   challenged: Ember.State.create({
     declineChallenge: (player) -> player.transitionTo "idle"
+    challengeCanceled: (player) ->
+      player.transitionTo "idle"
+      player.set("opponent", null)
     acceptChallenge: (player) -> player.transitionTo "inGame"
   })
   inGame: Ember.State.create({
@@ -41,6 +44,10 @@ App.Player = Ember.StateManager.extend({
   isInGame: (->
     return @get("currentState.name") is "inGame"
   ).property("currentState.name")
+
+  canBeChallenged: (->
+    @get("isIdle") and @get("currentPlayer.isIdle")
+  ).property("isIdle", "currentPlayer.isIdle")
 
   challengePlayer: (opponent) ->
     window.opp = opponent
@@ -81,6 +88,10 @@ App.LobbyController = Ember.Controller.extend({
     _.find(@get("allPlayers"), (p) -> p.get("id") is socket.socket.sessionid)
   ).property("allPlayers.@each")
 
+  setCurrentPlayer: (->
+    @get("allPlayers").forEach((p) => p.set("currentPlayer", @get("currentPlayer")))
+  ).observes("allPlayers.@each", "currentPlayer")
+
   init: ->
     @_super()
 
@@ -94,7 +105,6 @@ App.LobbyController = Ember.Controller.extend({
 
     socket.emit("getPlayersList")
     socket.once("playersList", ({playersList}) =>
-      console.log "raw list of player: ", playersList
       @set("allPlayers", _.map(playersList, (raw) ->
         App.Player.createPlayer(raw)
       ))
@@ -112,6 +122,18 @@ App.LobbyController = Ember.Controller.extend({
       return
     )
 
+    socket.on("changeState", (changes) =>
+      allPlayers = @get("allPlayers")
+      currentId = @get("currentPlayer.id")
+      opponentId = @get("currentPlayer.opponent.id")
+      changes = _.filter(changes, (c) -> c.id isnt currentId and c.id isnt opponentId)
+
+      for change in changes
+        player = _.find(allPlayers, (p) -> p.get("id") is change.id)
+        player.transitionTo(change.state)
+      return
+    )
+
     socket.on("getChallenge", ({opponentId}) =>
       window.challenger = _.find(@get("allPlayers"), (p) -> p.get("id") is opponentId)
       window.currentPlayer = @get("currentPlayer")
@@ -121,25 +143,23 @@ App.LobbyController = Ember.Controller.extend({
         currentPlayer.set("opponent", challenger)
         challenger.transitionTo("wait")
         challenger.set("opponent", currentPlayer)
-        # challenger.send("challenges", currentPlayer)
-        # currentPlayer.send("getChallenge", challenger)
 
       return
     )
 
-    socket.on("changeState", (changes) =>
-      allPlayers = @get("allPlayers")
-      currentId = @get("currentPlayer.id")
-      opponentId = @get("currentPlayer.opponent.id")
-      changes = _.filter(changes, (c) -> c.id isnt currentId and c.id isnt opponentId)
+    socket.on("declineChallenge", =>
+      opponent = @get("currentPlayer.opponent")
+      opponent.send("declineChallenge")
+      @get("currentPlayer").send("challengeDeclined")
+      @set("currentPlayer.opponent", null)
+      console.log "#{opponent.get("name")} declined your challenge"
+    )
 
-      console.log "opponentId: ", opponentId
-      console.log "list of filtered changes: ", changes
-
-      for change in changes
-        player = _.find(allPlayers, (p) -> p.get("id") is change.id)
-        player.transitionTo(change.state)
-      return
+    socket.on("challengeCancelled", =>
+      console.log "challenge canceled"
+      opponent = @get("currentPlayer.opponent")
+      @get("currentPlayer").send("challengeCanceled")
+      opponent.send("cancelChallenge")
     )
 
 
@@ -167,12 +187,10 @@ App.LobbyController = Ember.Controller.extend({
     return
 
   changeName: (newName) ->
-    console.log "set new name"
     @set("currentPlayer.name", newName)
     socket.emit("setName", {name: newName})
 
   challenges: (opponent) ->
-    console.log "play against ", opponent
     @get("currentPlayer").challengePlayer(opponent)
     return
 
@@ -183,6 +201,11 @@ App.LobbyController = Ember.Controller.extend({
     opponent.send("challengeDeclined")
     socket.emit("declineChallenge", {opponentId: opponent.get("id")})
     return
+
+  cancelChallenge: ->
+    socket.emit("cancelChallenge", {opponentId: @get("currentPlayer.opponent.id")})
+    @get("currentPlayer.opponent").send("challengeCanceled")
+    @get("currentPlayer").send("cancelChallenge")
 })
 
 App.PlayerNameView = Ember.TextField.extend({

@@ -35,12 +35,12 @@ Welcome: <div class="control-group success">
 
   {{ player.name }}
 
-  {{#if player.isIdle}}
+  {{#if player.canBeChallenged}}
   <a href="javascript://" class="button" {{ action challenges player }}>Play against</a>
   {{/if}}
 
   {{#if player.isChallenged}}
-    <span>Challenged !</span>
+  <a href="javascript://" class="button" {{ action cancelChallenge }}>Cancel</a>
   {{/if}}
 
   {{#if player.isWaiting}}

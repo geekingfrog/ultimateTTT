@@ -99,7 +99,27 @@ io.sockets.on("connection", (socket) ->
   )
 
   socket.on("declineChallenge", ({opponentId}) ->
+    player = players[socket.id]
+    opponent = players[opponentId]
+    player.state = "idle"
+    opponent.state = "idle"
+    opponent.socket.emit("declineChallenge")
+    socket.broadcast.emit("changeState", [
+      {id: player.id, state: player.state}
+      {id: opponent.id, state: opponent.state}
+    ])
+  )
 
+  socket.on("cancelChallenge", ({opponentId}) ->
+    player = players[socket.id]
+    opponent = players[opponentId]
+    player.state = "idle"
+    opponent.state = "idle"
+    opponent.socket.emit("challengeCancelled")
+    socket.broadcast.emit("changeState", [
+      {id: player.id, state: player.state}
+      {id: opponent.id, state: opponent.state}
+    ])
   )
 )
 
@@ -122,4 +142,3 @@ server.use(express.static __dirname)
 
 httpServer.listen(4445)
 console.log "Server up and running on port 4445"
-

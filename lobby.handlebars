@@ -2,9 +2,6 @@ Welcome: <div class="control-group success">
 {{view App.PlayerNameView type=text valueBinding=currentPlayer.name maxlength=12}}
 <i class="input-icon icon-pencil"></i>
 </div>
-current player status: {{ currentPlayer.status }}
-
-opponent: {{ currentPlayer.opponent }}
 
 {{#if currentPlayer.isChallenged}}
 <div class="alert-box">
@@ -17,18 +14,19 @@ opponent: {{ currentPlayer.opponent }}
   </a>
 </div>
 {{/if}}
-
 <ul class="players-list">
   {{#each player in otherPlayers}}
   <li>
   {{#if player.isIdle}}
-  <i {{ bindAttr class=":icon-circle :status player.isIdle:idle:inGame" }}
-    {{ bindAttr title="player.isIdle" }}
-    ></i>
+  <i class="icon-circle state idle" title="Idle" ></i>
+  {{/if}}
+
+  {{#if player.isInGame}}
+    <i class="icon-circle state inGame" title="In game"></i>
   {{/if}}
 
   {{#if player.isChallenged}}
-    <i class="icon-spin icon-spinner status"></i>
+    <i class="icon-spin icon-spinner state"></i>
   {{/if}}
 
   {{#if player.isWaiting}}
@@ -38,7 +36,7 @@ opponent: {{ currentPlayer.opponent }}
   {{ player.name }}
 
   {{#if player.isIdle}}
-  <a href="javascript://" class="button" {{ action playAgainst player }}>Play against</a>
+  <a href="javascript://" class="button" {{ action challenges player }}>Play against</a>
   {{/if}}
 
   {{#if player.isChallenged}}

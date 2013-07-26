@@ -1,60 +1,105 @@
 "use strict"
 
-App.Player = Ember.Object.extend({
+App.Player = Ember.StateManager.extend({
+  initialState: "idle"
+
+  # define states and transitions
+  idle: Ember.State.create({
+    challenges: (player, opponent) -> player.transitionTo "wait"
+    getChallenge: (player, opponent) -> player.transitionTo "challenged"
+  })
+  wait: Ember.State.create({ # wait for an opponent to accept or decline a challenge
+    challengeDeclined: (player) ->
+      player.transitionTo "idle"
+      player.set("opponent", null)
+    challengeAccepted: (player) ->
+      player.transitionTo "inGame"
+  })
+  challenged: Ember.State.create({
+    declineChallenge: (player) -> player.transitionTo "idle"
+    acceptChallenge: (player) -> player.transitionTo "inGame"
+  })
+  inGame: Ember.State.create({
+    finishGame: (player) -> player.transitionTo "idle"
+  })
+
+  # define other properties for a player
+  opponent: null
+
   isIdle: (->
-    return @get("status") is App.Player.status.idle
-  ).property("status")
+    return @get("currentState.name") is "idle"
+  ).property("currentState.name")
   
   isChallenged: (->
-    return @get("status") is App.Player.status.challenged
-  ).property("status")
+    return @get("currentState.name") is "challenged"
+  ).property("currentState.name")
 
   isWaiting: (->
-    return @get("status") is App.Player.status.waiting
-  ).property("status")
+    return @get("currentState.name") is "wait"
+  ).property("currentState.name")
+
+  isInGame: (->
+    return @get("currentState.name") is "inGame"
+  ).property("currentState.name")
+
+  challengePlayer: (opponent) ->
+    window.opp = opponent
+    @set("opponent", opponent)
+    @send("challenges")
+    socket.emit("challenges", {opponentId: opponent.get("id")}, (err)  =>
+      if err?
+        @transitionTo("idle")
+        console.error err
+      else
+        @set("opponent", opponent)
+        opponent.set("opponent", this)
+        opponent.send("getChallenge", this)
+    )
 })
 
 App.Player.reopenClass({
-  status: {
-    idle: "IDLE"
-    ingame: "IN_GAME"
-    waiting: "WAITING" # waiting for opponent to accept play request
-    challenged: "CHALLENGED" # a player has requested a game against this player
-  }
+  createPlayer: (hash) ->
+    state = hash.state or "idle"
+    hash.initialState = state
+    delete hash.state
+    player = @create(hash)
 })
 
 App.LobbyController = Ember.Controller.extend({
-  currentPlayer: null
   allPlayers: null
   otherPlayers: ( ->
-    currentId = @get("currentPlayer.id")
+    currentId = socket.socket.sessionid
     if currentId?
       return _.filter(@get("allPlayers"), (player) ->
         player.get("id") isnt currentId
       )
     else
       return @get("allPlayers")
-  ).property("currentPlayer.id", "allPlayers.@each")
+  ).property("allPlayers.@each")
+
+  currentPlayer: (->
+    _.find(@get("allPlayers"), (p) -> p.get("id") is socket.socket.sessionid)
+  ).property("allPlayers.@each")
 
   init: ->
     @_super()
 
     socket.emit("getDefaultName")
     socket.once("defaultName", ({defaultName}) =>
-      @set("currentPlayer", App.Player.create({
-        name: defaultName
-        status: App.Player.status.idle
-        # status: App.Player.status.challenged
-        id: socket.socket.sessionid
-      }))
+      currentPlayer = @get("currentPlayer")
+      if currentPlayer
+        currentPlayer.set("name", defaultName)
+      return
     )
 
     socket.emit("getPlayersList")
     socket.once("playersList", ({playersList}) =>
+      console.log "raw list of player: ", playersList
       @set("allPlayers", _.map(playersList, (raw) ->
-        # raw.status = App.Player.status.challenged
-        App.Player.create(raw)
+        App.Player.createPlayer(raw)
       ))
+      window.list = @get("allPlayers")
+      return
     )
 
     # manage new/leaving player from the lobby
@@ -67,21 +112,40 @@ App.LobbyController = Ember.Controller.extend({
       return
     )
 
-    socket.on("gameRequest", ({opponentId}) =>
-      opponent = _.find(@get("allPlayers"), (p) -> p.get("id") is opponentId)
-      return unless opponent?
+    socket.on("getChallenge", ({opponentId}) =>
+      window.challenger = _.find(@get("allPlayers"), (p) -> p.get("id") is opponentId)
+      window.currentPlayer = @get("currentPlayer")
 
-      console.log "game request with opponent: ", opponent
-      opponent.set("status", App.Player.status.waiting)
-      @get("currentPlayer").setProperties(
-        status: App.Player.status.challenged
-        opponent: opponent
-      )
+      if challenger?
+        currentPlayer.transitionTo("challenged")
+        currentPlayer.set("opponent", challenger)
+        challenger.transitionTo("wait")
+        challenger.set("opponent", currentPlayer)
+        # challenger.send("challenges", currentPlayer)
+        # currentPlayer.send("getChallenge", challenger)
+
+      return
+    )
+
+    socket.on("changeState", (changes) =>
+      allPlayers = @get("allPlayers")
+      currentId = @get("currentPlayer.id")
+      opponentId = @get("currentPlayer.opponent.id")
+      changes = _.filter(changes, (c) -> c.id isnt currentId and c.id isnt opponentId)
+
+      console.log "opponentId: ", opponentId
+      console.log "list of filtered changes: ", changes
+
+      for change in changes
+        player = _.find(allPlayers, (p) -> p.get("id") is change.id)
+        player.transitionTo(change.state)
+      return
     )
 
 
   # add a player if not already in the list
   addPlayer: (player) ->
+    console.log "add player: ", player
     players = @get("allPlayers")
     return unless players?
 
@@ -107,19 +171,18 @@ App.LobbyController = Ember.Controller.extend({
     @set("currentPlayer.name", newName)
     socket.emit("setName", {name: newName})
 
-  playAgainst: (opponent) ->
+  challenges: (opponent) ->
     console.log "play against ", opponent
-    opponent.set("status", App.Player.status.challenged)
-    @set("currentPlayer.status", App.Player.status.waiting)
-    socket.emit("gameRequest", {opponentId: opponent.get("id")}, ((err) =>
-      if err?
-        @set("currentPlayer.status", App.Player.status.idle)
-        console.log "error: ", err
-      else
-        @set("currentPlayer.opponent", opponent)
-      return
-    ))
+    @get("currentPlayer").challengePlayer(opponent)
+    return
 
+  declineChallenge: ->
+    currentPlayer = @get("currentPlayer")
+    opponent = currentPlayer.get("opponent")
+    currentPlayer.send("declineChallenge")
+    opponent.send("challengeDeclined")
+    socket.emit("declineChallenge", {opponentId: opponent.get("id")})
+    return
 })
 
 App.PlayerNameView = Ember.TextField.extend({

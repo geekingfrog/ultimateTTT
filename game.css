@@ -169,12 +169,16 @@ input:focus {
   visibility: visible;
 }
 
-.status {
+.state {
   padding: 5px;
 }
 
-.status.idle {
+.state.idle {
   color: #3c3;
+}
+
+.state.inGame {
+  color: #c33;
 }
 
 .button {

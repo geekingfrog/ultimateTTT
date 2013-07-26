@@ -33,14 +33,15 @@ getPlayersList = ->
   )
 
 class Player
-  constructor: (@socket, @name, @status="IDLE") ->
+  constructor: (@socket, @name, @state="idle") ->
+    @id = @socket.id
 
   # get a hash to be send to a client
   serialize: ->
     return {
       id: @socket.id
       name: @name
-      status: @status
+      state: @state
     }
 
 guestId = 0
@@ -76,17 +77,42 @@ io.sockets.on("connection", (socket) ->
     return
   )
 
-  socket.on("gameRequest", ({opponentId}, cb) ->
-    opponent = players[opponentId]
-    if opponent?
-      players[opponentId].socket.emit("gameRequest", {opponentId: socket.id})
+  socket.on("challenges", ({opponentId}, cb) ->
+    challenger = players[socket.id]
+    challengee = players[opponentId]
+    if challengee?
+      challenger.state = "inGame"
+      challenger.opponentId = opponentId
+
+      challengee.state = "inGame"
+      challengee.opponentId = challenger.id
+      
+      socket.broadcast.emit("changeState", [
+        {id: challenger.id, state: challenger.state}
+        {id: challengee.id, state: challengee.state}
+      ])
+      challengee.socket.emit("getChallenge", {opponentId: challenger.id})
       cb()
     else
       cb("Opponent not found.")
     return
   )
+
+  socket.on("declineChallenge", ({opponentId}) ->
+
+  )
 )
 
+server.get("/clients", (req, res) ->
+  res.send io.sockets.clients().map( (c) ->
+    player = players[c.id]
+    return {
+      id: c.id
+      state: player.state
+      opponentId: player.opponentId
+    }
+  )
+)
 
 server.use(server.router)
 

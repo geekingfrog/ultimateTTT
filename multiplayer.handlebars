@@ -5,11 +5,27 @@
   </p>
 </div>
 
-<div class="col-1-2">
-  {{ render "hotseat" }}
-</div>
-<div class="col-1-2 lobby">
-  {{ render "lobby" }}
-</div>
+{{#if currentPlayer.isInGame }}
+  <div class="col-1-2">
+    You re playing as {{ view App.IconSymbolView symbolBinding=currentPlayer.symbol }}
+    <br />
+    {{#if currentPlayer.isActive}}
+      Your turn to play
+    {{else}}
+      <i class="icon-spin icon-spinner"></i> wait for opponent move...
+    {{/if}}
+    {{ render "game" }}
+  </div>
+  <div class="col-1-2">
+
+  </div>
+{{else}}
+  <div class="col-1-2">
+    {{ render "chatroom" }}
+  </div>
+  <div class="col-1-2">
+    {{ template "lobby" }}
+  </div>
+{{/if}}
 
 

@@ -21,13 +21,20 @@
 ################################################################################ 
 
 App.ValidatedTextField = Ember.TextField.extend({
-  classNameBindings: ["staticClasses", "invalidClass"]
+  classNameBindings: ["staticClasses", "invalidClass", "validClass"]
   invalidClass: Ember.computed( ->
     if @get("focusedOut") and @get("invalidCondition")
       return "invalid"
     else
       return ""
-  ).property("invalidCondition", "focusedOut", "foo")
+  ).property("invalidCondition", "focusedOut")
+
+  validClass: Ember.computed( ->
+    if @get("focusedOut") and not @get("invalidCondition")
+      return "valid"
+    else
+      return ""
+  ).property("focusedOut", "invalidCondition")
 
   focusedOut: false
   focusOut: (ev) -> @set("focusedOut", true)

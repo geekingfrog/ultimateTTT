@@ -1,7 +1,4 @@
-Welcome: <div class="control-group success">
-{{view App.PlayerNameView type=text valueBinding=currentPlayer.name maxlength=12}}
-<i class="input-icon icon-pencil"></i>
-</div>
+Welcome: {{ currentPlayer.name }}
 
 {{#if currentPlayer.isChallenged}}
 <div class="alert-box">

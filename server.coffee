@@ -44,7 +44,6 @@ class Player
       state: @state
     }
 
-guestId = 0
 io.sockets.on("connection", (socket) ->
   socket.on("disconnect", ->
     delete players[socket.id]
@@ -52,22 +51,16 @@ io.sockets.on("connection", (socket) ->
     return
   )
 
-  guestId++
-  name = "Guest#{guestId}"
-  players[socket.id] = new Player(socket, name)
-
-  socket.broadcast.emit("addPlayer", {player: players[socket.id].serialize()})
+  socket.on("join", ({name}, cb) ->
+    players[socket.id] = new Player(socket, name)
+    socket.broadcast.emit("addPlayer", {player: players[socket.id].serialize()})
+    cb({playersList: _.values(players).map( (p) -> p.serialize())})
+  )
 
   socket.on("getPlayersList", ->
     socket.emit("playersList", {playersList: _.values(players).map((player) ->
       return player.serialize()
     )})
-  )
-
-  socket.on("getDefaultName", do (id=guestId) ->
-    return ->
-      socket.emit("defaultName", {defaultName: "Guest#{id}"})
-      return
   )
 
   socket.on("setName", ({name}) ->
@@ -121,17 +114,32 @@ io.sockets.on("connection", (socket) ->
       {id: opponent.id, state: opponent.state}
     ])
   )
+
+  socket.on("acceptChallenge", ({opponentId}) ->
+    challenger = players[opponentId]
+    challengee = players[socket.id]
+    challenger.socket.emit("challengeAccepted")
+  )
+
+  socket.on("markSquare", (opts) ->
+    console.log "marking square"
+    console.dir opts
+    opponent = players[opts.opponentId]
+    opponent.socket.emit("markSquare", opts)
+  )
+
+  socket.on("postMsg", ({msg}) ->
+    socket.broadcast.emit("newMsg", ({msg: msg}))
+  )
+
 )
 
 server.get("/clients", (req, res) ->
   res.send io.sockets.clients().map( (c) ->
     player = players[c.id]
-    return {
-      id: c.id
-      state: player.state
-      opponentId: player.opponentId
-    }
-  )
+    if player
+      return player.serialize()
+  ).filter( (p) -> p)
 )
 
 server.use(server.router)

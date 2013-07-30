@@ -62,8 +62,8 @@ Game.Block.reopenClass({
     squares = [0..8].map( (i) ->
       return Game.Square.create({
         block: block
-        x: i%3
-        y: Math.floor(i/3)
+        xBlock: i%3
+        yBlock: Math.floor(i/3)
       })
     )
     block.set("squares", squares)
@@ -146,7 +146,6 @@ Game.Board = Em.Object.extend({
     accessor = (block) -> block.get("wonBy")
     winner = Game.arrayWonBy(blocks, accessor)
     if winner
-      console.log "board won by: #{winner}"
       @set("hasBeenWon", winner)
       return winner
   ).property("blocks.@each.wonBy")
@@ -164,8 +163,8 @@ Game.Board.reopenClass({
     blocks = [0..8].map( (i) ->
       return Game.Block.createBlock({
         board: board
-        x: Math.floor(i/3)
-        y: i%3
+        x: i%3
+        y: Math.floor(i/3)
       })
     )
     board.setProperties({

@@ -13,14 +13,19 @@
 </div>
 
 <div class="col-1-2">
-  {{#linkTo "multiplayer"}}
+  <p>
     Multiplayer. Bring the power of the internet to challenge people all over the world.
-  {{/linkTo}}
+  </p>
   <br />
-  {{ view App.ValidatedTextField
-  valueBinding=username
-  invalidConditionBinding=isUsernameInvalid
-  name=username
-  placeholder=username
-  }}
+  <form {{ action connect on="submit" }}>
+    {{ view App.ValidatedTextField
+    valueBinding=username
+    invalidConditionBinding=isUsernameInvalid
+    name=username
+    placeholder=username
+    }}
+    {{#unless isUsernameInvalid}}
+      <input type="submit" class="button" value="Connect" />
+    {{/unless}}
+  </form>
 </div>

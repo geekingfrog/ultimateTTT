@@ -1,0 +1,14 @@
+<div class="chatroom">
+  <ul>
+    {{#each msg in msgList}}
+    <li>{{msg}}</li>
+    {{/each}}
+  </ul>
+
+</div>
+<form {{ action postMsg on="submit" }}>
+{{ input type=text value=msg size=30 }}
+<input type="submit" class="button" value="post"/>
+</form>
+
+

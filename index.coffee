@@ -1,4 +1,5 @@
 # App.IndexRoute = Ember.Route.extend()
+App.set("username", "hardcoded-#{Date.now()}")
 
 App.IndexController = Ember.Controller.extend({
   isUsernameInvalid: (->
@@ -8,5 +9,12 @@ App.IndexController = Ember.Controller.extend({
       return false
   ).property("username")
   username: ""
+
+  connect: ->
+    username = @get "username"
+    return if @get("isUsernameInvalid")
+    App.set("username", username)
+    console.log "connect with username: #{@get "username"}"
+    @transitionToRoute("multiplayer")
 
 })

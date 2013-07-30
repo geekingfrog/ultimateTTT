@@ -1,5 +1,16 @@
 "use strict"
 
+App.MultiplayerRoute = Ember.Route.extend({
+  beforeModel: ->
+    username = App.get("username")
+    if not username
+      console.log "no username !"
+      @transitionTo("index")
+
+  setupController: (controller) ->
+    controller.set("username", App.get("username"))
+})
+
 App.Player = Ember.StateManager.extend({
   initialState: "idle"
 
@@ -8,6 +19,7 @@ App.Player = Ember.StateManager.extend({
     challenges: (player, opponent) -> player.transitionTo "wait"
     getChallenge: (player, opponent) -> player.transitionTo "challenged"
   })
+
   wait: Ember.State.create({ # wait for an opponent to accept or decline a challenge
     challengeDeclined: (player) ->
       player.transitionTo "idle"
@@ -15,6 +27,7 @@ App.Player = Ember.StateManager.extend({
     challengeAccepted: (player) -> player.transitionTo "inGame"
     cancelChallenge: (player) -> player.transitionTo "idle"
   })
+
   challenged: Ember.State.create({
     declineChallenge: (player) -> player.transitionTo "idle"
     challengeCanceled: (player) ->
@@ -22,12 +35,20 @@ App.Player = Ember.StateManager.extend({
       player.set("opponent", null)
     acceptChallenge: (player) -> player.transitionTo "inGame"
   })
+
   inGame: Ember.State.create({
     finishGame: (player) -> player.transitionTo "idle"
+    play: (player) -> player.transitionTo "waitOpponentMove"
+  })
+
+  waitOpponentMove: Ember.State.create({
+    finishGame: (player) -> player.transitionTo "idle"
+    opponentPlays: (player) -> player.transitionTo "inGame"
   })
 
   # define other properties for a player
   opponent: null
+  symbol: null # can be 'x' or 'o'
 
   isIdle: (->
     return @get("currentState.name") is "idle"
@@ -42,7 +63,12 @@ App.Player = Ember.StateManager.extend({
   ).property("currentState.name")
 
   isInGame: (->
-    return @get("currentState.name") is "inGame"
+    state = @get("currentState.name")
+    return state is "inGame" or state is "waitOpponentMove"
+  ).property("currentState.name")
+
+  isWaitingOpponentMove: (->
+    return @get("currentState.name") is "waitOpponentMove"
   ).property("currentState.name")
 
   canBeChallenged: (->
@@ -72,7 +98,9 @@ App.Player.reopenClass({
     player = @create(hash)
 })
 
-App.LobbyController = Ember.Controller.extend({
+App.MultiplayerController = Ember.Controller.extend({
+  needs: "game"
+
   allPlayers: null
   otherPlayers: ( ->
     currentId = socket.socket.sessionid
@@ -85,40 +113,30 @@ App.LobbyController = Ember.Controller.extend({
   ).property("allPlayers.@each")
 
   currentPlayer: (->
-    _.find(@get("allPlayers"), (p) -> p.get("id") is socket.socket.sessionid)
+    res = _.find(@get("allPlayers"), (p) -> p.get("id") is socket.socket.sessionid)
+    return res
   ).property("allPlayers.@each")
 
   setCurrentPlayer: (->
     @get("allPlayers").forEach((p) => p.set("currentPlayer", @get("currentPlayer")))
+    App.set("currentPlayer", @get("currentPlayer"))
+    return
   ).observes("allPlayers.@each", "currentPlayer")
 
   init: ->
     @_super()
 
-    socket.emit("getDefaultName")
-    socket.once("defaultName", ({defaultName}) =>
-      currentPlayer = @get("currentPlayer")
-      if currentPlayer
-        currentPlayer.set("name", defaultName)
-      return
-    )
-
     socket.emit("getPlayersList")
-    socket.once("playersList", ({playersList}) =>
-      @set("allPlayers", _.map(playersList, (raw) ->
-        App.Player.createPlayer(raw)
-      ))
-      window.list = @get("allPlayers")
-      return
-    )
 
     # manage new/leaving player from the lobby
     socket.on("addPlayer", ({player}) => @addPlayer(App.Player.create(player)))
     socket.on("bye", ({id}) => @removePlayer(id))
 
-    socket.on("changeName", ({id, name}) =>
-      player = _.find(@get("otherPlayers"), (p) -> p.get("id") is id)
-      player.set("name", name)
+    socket.emit("join", {name: App.get("username")}, ({playersList}) =>
+      @set("allPlayers", _.map(playersList, (raw) ->
+        App.Player.createPlayer(raw)
+      ))
+      window.list = @get("allPlayers")
       return
     )
 
@@ -162,6 +180,16 @@ App.LobbyController = Ember.Controller.extend({
       opponent.send("cancelChallenge")
     )
 
+    socket.on("challengeAccepted", =>
+      console.log "challenge accepted"
+      opponent = @get("currentPlayer.opponent")
+      @get("currentPlayer").send("challengeAccepted")
+      opponent.send("acceptChallenge")
+      opponent.transitionTo("waitOpponentMove")
+      @set("controllers.game.player", @get("currentPlayer"))
+      @set("currentPlayer.symbol", "x")
+    )
+
 
   # add a player if not already in the list
   addPlayer: (player) ->
@@ -186,10 +214,6 @@ App.LobbyController = Ember.Controller.extend({
       @set("currentPlayer.status", App.Player.status.idle)
     return
 
-  changeName: (newName) ->
-    @set("currentPlayer.name", newName)
-    socket.emit("setName", {name: newName})
-
   challenges: (opponent) ->
     @get("currentPlayer").challengePlayer(opponent)
     return
@@ -206,9 +230,34 @@ App.LobbyController = Ember.Controller.extend({
     socket.emit("cancelChallenge", {opponentId: @get("currentPlayer.opponent.id")})
     @get("currentPlayer.opponent").send("challengeCanceled")
     @get("currentPlayer").send("cancelChallenge")
+
+  acceptChallenge: ->
+    console.log "start game against: ", @get("currentPlayer.opponent.name")
+    @get("currentPlayer").send("acceptChallenge")
+    @get("currentPlayer").transitionTo("waitOpponentMove")
+    @get("currentPlayer.opponent").send("challengeAccepted")
+    socket.emit("acceptChallenge", {opponentId: @get("currentPlayer.opponent.id")})
+    @set("controllers.game.player", @get("currentPlayer"))
+    @set("currentPlayer.symbol", "o")
 })
 
 App.PlayerNameView = Ember.TextField.extend({
   focusOut: ->
     @get("controller").send("changeName", @get("value"))
+})
+
+App.IconSymbolView = Ember.View.extend({
+  # template: Ember.Handlebars.compile("<i {{bindAttr class=view.iconSymbol}}></i>bla")
+  template: Ember.Handlebars.compile(" ")
+  classNameBindings: [':icon-2x', 'iconSymbol']
+  tagName: 'i'
+  iconSymbol: (->
+    symbol = @get("symbol")
+    if symbol is 'x'
+      return "icon-remove"
+    else if symbol is 'o'
+      return "icon-circle-blank"
+    else
+      return ""
+  ).property("symbol")
 })

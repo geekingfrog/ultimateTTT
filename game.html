@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="font-awesome/css/font-awesome.css" type="text/css" />
     <link rel="stylesheet" href="simplegrid.css" type="text/css" />
     <link rel="stylesheet" href="game.css" type="text/css" />
+    <link rel="stylesheet" href="bower_components/toastr/toastr.min.css" type="text/css" />
 
     <title>Ultimate tic tac toe</title>
 
@@ -23,6 +24,7 @@
     <script src="ember.js" type="text/javascript" charset="utf-8"></script>
     <script src="templates.js" type="text/javascript" charset="utf-8"></script>
     <script src="bower_components/lodash/dist/lodash.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="bower_components/toastr/toastr.min.js" type="text/javascript" charset="utf-8"></script>
 
     <script type="text/javascript" charset="utf-8">
       window.App = Ember.Application.create({
@@ -30,13 +32,19 @@
       });
     </script>
 
+
     <script src="validatedView.js" type="text/javascript" charset="utf-8"></script>
     <script src="gameDefinition.js" type="text/javascript" charset="utf-8"></script>
     <script src="index.js" type="text/javascript" charset="utf-8"></script>
     <script src="game.js" type="text/javascript" charset="utf-8"></script>
     <script src="multiplayer.js" type="text/javascript" charset="utf-8"></script>
+    <script src="gameChatroom.js" type="text/javascript" charset="utf-8"></script>
     <script src="chatroom.js" type="text/javascript" charset="utf-8"></script>
     <script src="hotseat.js" type="text/javascript" charset="utf-8"></script>
     <script src="router.js" type="text/javascript" charset="utf-8"></script>
+
+    <script type="text/javascript" charset="utf-8">
+      toastr.options.positionClass = "toast-top-full-width";
+    </script>
   </body>
 </html>

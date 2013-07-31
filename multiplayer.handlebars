@@ -17,14 +17,15 @@
     {{ render "game" }}
   </div>
   <div class="col-1-2">
-
+    {{ render "surrender" }}
+    {{ render "gameChatroom" }}
   </div>
 {{else}}
   <div class="col-1-2">
-    {{ render "chatroom" }}
+    {{ template "lobby" }}
   </div>
   <div class="col-1-2">
-    {{ template "lobby" }}
+    {{ render "chatroom" }}
   </div>
 {{/if}}
 

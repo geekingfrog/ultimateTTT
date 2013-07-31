@@ -141,6 +141,7 @@ App.MultiplayerController = Ember.Controller.extend({
     )
 
     socket.on("changeState", (changes) =>
+      console.log "change state with changes: ", changes
       allPlayers = @get("allPlayers")
       currentId = @get("currentPlayer.id")
       opponentId = @get("currentPlayer.opponent.id")
@@ -188,6 +189,14 @@ App.MultiplayerController = Ember.Controller.extend({
       opponent.transitionTo("waitOpponentMove")
       @set("controllers.game.player", @get("currentPlayer"))
       @set("currentPlayer.symbol", "x")
+    )
+
+    socket.on("surrender", =>
+      player = @get("currentPlayer")
+      opponent = player.get("opponent")
+      player.transitionTo("idle")
+      opponent.transitionTo("idle")
+      toastr.info "Opponent surrendered ! Victory !"
     )
 
 
@@ -239,6 +248,28 @@ App.MultiplayerController = Ember.Controller.extend({
     socket.emit("acceptChallenge", {opponentId: @get("currentPlayer.opponent.id")})
     @set("controllers.game.player", @get("currentPlayer"))
     @set("currentPlayer.symbol", "o")
+
+  confirmSurrender: ->
+    socket.emit("surrender", {opponentId: @get("currentPlayer.opponent.id")})
+    @finishGame()
+
+  # executed when the game has been won by someone
+  gameFinished: (->
+    wonBy = @get("controllers.game.board.wonBy")
+    return unless wonBy
+    console.log "game finished and won by: ", @get("controllers.game.board.wonBy")
+    if @get("currentPlayer.symbol") is wonBy
+      toastr.info("You won !")
+    else
+      toastr.info("Maybe next time...")
+    @finishGame()
+    return
+  ).observes("controllers.game.board.wonBy")
+
+  finishGame: ->
+    @get("currentPlayer").transitionTo("idle")
+    @get("currentPlayer.opponent").transitionTo("idle")
+
 })
 
 App.PlayerNameView = Ember.TextField.extend({
@@ -260,4 +291,11 @@ App.IconSymbolView = Ember.View.extend({
     else
       return ""
   ).property("symbol")
+})
+
+App.SurrenderController = Ember.Controller.extend({
+  clicked: false
+  
+  surrender: -> @set("clicked", true)
+  cancelSurrender: -> @set("clicked", false)
 })

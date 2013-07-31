@@ -219,6 +219,15 @@ input.valid {
   background-color: rgb(208,208,208);
 }
 
+.button-warning {
+  background-color: rgb(198, 15, 19);
+  border: 1px solid rgb(151, 11, 14);
+}
+
+.button-warning:hover {
+  background-color: rgb(151, 11, 14);
+}
+
 .chatroom {
   height: 200px;
   border: 1px solid black;

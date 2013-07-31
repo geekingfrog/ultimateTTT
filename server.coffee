@@ -122,8 +122,6 @@ io.sockets.on("connection", (socket) ->
   )
 
   socket.on("markSquare", (opts) ->
-    console.log "marking square"
-    console.dir opts
     opponent = players[opts.opponentId]
     opponent.socket.emit("markSquare", opts)
   )
@@ -132,6 +130,28 @@ io.sockets.on("connection", (socket) ->
     socket.broadcast.emit("newMsg", ({msg: msg}))
   )
 
+  socket.on("postGameMsg", ({msg, opponentId}, cb) ->
+    opponent = players[opponentId]
+    if opponent
+      opponent.socket.emit("newGameMsg", ({msg: msg}))
+      cb()
+    else
+      cb("Opponent Not Found")
+    return
+  )
+
+  socket.on("surrender", ({opponentId}) ->
+    player = players[socket.id]
+    opponent = players[opponentId]
+    opponent.socket.emit("surrender")
+    opponent.state = "idle"
+    player.state = "idle"
+    socket.broadcast.emit("changeState", [
+      {id: player.id, state: player.state}
+      {id: opponent.id, state: opponent.state}
+    ])
+    return
+  )
 )
 
 server.get("/clients", (req, res) ->

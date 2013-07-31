@@ -25,6 +25,12 @@ module.exports = (grunt) ->
         files: {'templates.js': '**/*.handlebars'}
     } # end ember_templates
 
+    bower: {
+      install: {
+        targetDir: 'bower_components'
+      }
+    }
+
     watch: {
       ember: {
         files: '**/*.handlebars'
@@ -36,6 +42,11 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-watch'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-ember-templates'
+  grunt.loadNpmTasks 'grunt-bower-task'
+
+  grunt.registerTask 'install', [
+    'bower'
+  ]
 
   grunt.registerTask 'default', [
     'coffee'

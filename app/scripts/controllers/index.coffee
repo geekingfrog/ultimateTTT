@@ -1,5 +1,5 @@
 # App.IndexRoute = Ember.Route.extend()
-App.set("username", "hardcoded-#{Date.now()}")
+# App.set("username", "hardcoded-#{Date.now()}")
 
 App.IndexController = Ember.Controller.extend({
   isUsernameInvalid: (->

@@ -22,7 +22,7 @@ module.exports = (grunt) ->
             target = filename.replace(/.*\//i, '').replace('.','/')
             grunt.log.writeln 'register template: '+target
             return target
-        files: {'templates.js': '**/*.handlebars'}
+        files: {'app/templates.js': '**/*.hbs'}
     } # end ember_templates
 
     bower: {
@@ -33,7 +33,7 @@ module.exports = (grunt) ->
 
     watch: {
       ember: {
-        files: '**/*.handlebars'
+        files: '**/*.hbs'
         tasks: ['emberTemplates']
       }
     }

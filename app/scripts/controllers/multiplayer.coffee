@@ -1,16 +1,5 @@
 "use strict"
 
-App.MultiplayerRoute = Ember.Route.extend({
-  beforeModel: ->
-    username = App.get("username")
-    if not username
-      console.log "no username !"
-      @transitionTo("index")
-
-  setupController: (controller) ->
-    controller.set("username", App.get("username"))
-})
-
 App.Player = Ember.StateManager.extend({
   initialState: "idle"
 
@@ -275,22 +264,6 @@ App.MultiplayerController = Ember.Controller.extend({
 App.PlayerNameView = Ember.TextField.extend({
   focusOut: ->
     @get("controller").send("changeName", @get("value"))
-})
-
-App.IconSymbolView = Ember.View.extend({
-  # template: Ember.Handlebars.compile("<i {{bindAttr class=view.iconSymbol}}></i>bla")
-  template: Ember.Handlebars.compile(" ")
-  classNameBindings: [':icon-2x', 'iconSymbol']
-  tagName: 'i'
-  iconSymbol: (->
-    symbol = @get("symbol")
-    if symbol is 'x'
-      return "icon-remove"
-    else if symbol is 'o'
-      return "icon-circle-blank"
-    else
-      return ""
-  ).property("symbol")
 })
 
 App.SurrenderController = Ember.Controller.extend({

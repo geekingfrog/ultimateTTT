@@ -1,42 +1,41 @@
-################################################################################ 
-# behaves like a regular textField with two differences:
-#   * Do not directly supply class to the view. Instead, supply staticClasses
-#   as a string.
-#   * Provide a binding called invalidCondition to add or remove the class. This
-#   should be provided as a computed property.
-#
-#   The class "invalid" is added to the input field when the focus has been lost
-#   at least one time, and the invalidCondition returns a truthy value
-#
-#   Usage example:
-#     {{ view App.ValidatedTextField type="email"
-#     autofocus="autofocus"
-#     placeholder="e-mail"
-#     valueBinding=email
-#     staticClasses="input-email"
-#     invalidConditionBinding=isEmailInvalid
-#     name="email"
-#     }}
-#
-################################################################################ 
+App.ConnectView = Ember.View.extend({
+  templateName: "connect"
 
-App.ValidatedTextField = Ember.TextField.extend({
-  classNameBindings: ["staticClasses", "invalidClass", "validClass"]
-  invalidClass: Ember.computed( ->
-    if @get("focusedOut") and @get("invalidCondition")
-      return "invalid"
-    else
-      return ""
-  ).property("invalidCondition", "focusedOut")
+  isUsernameValid: (-> @get("username").length > 3).property("username")
 
-  validClass: Ember.computed( ->
-    if @get("focusedOut") and not @get("invalidCondition")
-      return "valid"
+  errorMessage: (->
+    if @get("username").length <= 3
+      return "too short"
+  ).property("username")
+
+  isErrorMessageVisible: (->
+    @get("focusedOut") and not @get("isUsernameValid")
+  ).property("focusedOut", "isUsernameValid")
+
+  isButtonDisabled: (->
+    if @get("focusedIn")
+      return !@get("isUsernameValid")
     else
-      return ""
-  ).property("focusedOut", "invalidCondition")
+      return true
+  ).property("isUsernameValid", "focusedIn")
 
   focusedOut: false
-  focusOut: (ev) -> @set("focusedOut", true)
+  focusOut: -> @set("focusedOut", true)
+
+  focusedIn: false
+  focusIn: -> @set("focusedIn", true)
+
+  click: (ev) ->
+    return unless @get("isUsernameValid")
+    if ev.target.nodeName is "A"
+      @get("controller").send("connect")
+    return
+
+  connect: ->
+    console.log "connect in view"
 })
 
+App.ValidatedTextField = Ember.TextField.extend({
+  classNameBindings: ['isValid::error']
+  isValid: true
+})

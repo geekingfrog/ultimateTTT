@@ -1,8 +1,22 @@
 // Make sure the charset is set appropriately
 @charset "UTF-8";
 
+
+// flatuicolors.com
+$primary-color: #3498db; // peter river
+$secondary-color: #2980b9; // belize hole
+
 @import "../bower_components/foundation/scss/normalize.scss";
 @import "../bower_components/foundation/scss/foundation/variables";
+@import "../bower_components/foundation/scss/foundation/components/global";
 
-@import "./game.css";
+@import "../bower_components/foundation/scss/foundation/components/grid";
+@import "../bower_components/foundation/scss/foundation/components/type";
+@import "../bower_components/foundation/scss/foundation/components/buttons";
+@import "../bower_components/foundation/scss/foundation/components/forms";
 
+
+
+// @import "./game.css";
+@import "./board.scss"; // styling of the board to play
+// @import "./forms.scss"; // add some stuff (invalid input styling for example)

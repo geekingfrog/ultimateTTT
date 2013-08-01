@@ -20,7 +20,7 @@ filter = (pattern, fun) ->
  
 watch('./app', filter(/\.js$|\.css$|\.html$/i, _.debounce((->
   io.sockets.emit('reload')
-), 300)))
+), 500)))
 
 
 

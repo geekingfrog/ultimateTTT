@@ -1,0 +1,85 @@
+.board {
+  padding-left: 1em;
+}
+
+.row {
+  display: block;
+}
+
+.block {
+  float: left;
+  overflow: auto;
+  /* width: 90px; */
+  border: 1px solid black;
+}
+
+.row:after {
+  content: " ";
+  display: table;
+  clear: both;
+}
+
+.block-row {
+  overflow: auto;
+}
+
+.cell {
+  width: 30px;
+  height: 30px;
+  border: 1px dashed black;
+  padding: 0;
+  margin: 0;
+  float: left;
+}
+
+ /* remove borders which touch the board's borders */
+.block .block-row:first-of-kind .cell {
+  border-top: none;
+}
+
+.block .block-row:last-of-kind .cell {
+  border-bottom: none;
+}
+
+.block-row .cell:first-of-kind {
+  border-left: none;
+}
+
+.block-row .cell:last-of-kind {
+  border-right: none;
+}
+
+
+.marked {
+  text-align: center;
+  display: block;
+  font-size: 1.7em;
+}
+
+i.icon-remove {
+  color: #e20;
+}
+
+i.icon-circle-blank {
+  color: #02e;
+}
+
+.block.playable .cell:not(.marked) {
+  background-color: rgba(125,225,125,.5);
+  /* border-color: rgb(125,250,125); */
+}
+
+.playable .cell:not(.marked):hover {
+  background-color: #ccc;
+  cursor: pointer;
+}
+
+.block.won-o .cell.marked {
+  /* border-color: rgb(125,125,225); */
+  background-color: rgb(125,125,225);
+}
+
+.block.won-x .cell.marked {
+  /* border-color: rgb(225,125,125); */
+  background-color: rgb(225,125,125);
+}

@@ -1,4 +1,5 @@
-<div class="col-1-1">
+
+<div class="small-12 columns">
   Welcome to Ultimate TicTacToe online !
   <p>
   If you don t know how to play the ultimate tic tac toe,
@@ -6,26 +7,18 @@
   </p>
 </div>
 
-<div class="col-1-2">
+<div class="small-6 columns">
   {{#linkTo "hotseat"}}
   Hot seat, play with your friend (or worse enemy) on the same computer.
   {{/linkTo}}
 </div>
 
-<div class="col-1-2">
+<div class="small-6 columns">
   <p>
     Multiplayer. Bring the power of the internet to challenge people all over the world.
   </p>
   <br />
-  <form {{ action connect on="submit" }}>
-    {{ view App.ValidatedTextField
-    valueBinding=username
-    invalidConditionBinding=isUsernameInvalid
-    name=username
-    placeholder=username
-    }}
-    {{#unless isUsernameInvalid}}
-      <input type="submit" class="button" value="Connect" />
-    {{/unless}}
-  </form>
+
+  {{ view App.ConnectView usernameBinding=username}}
+
 </div>

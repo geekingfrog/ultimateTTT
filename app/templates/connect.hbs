@@ -1,0 +1,20 @@
+<form {{ action connect on="submit" }}>
+  <div class="row collapse">
+    <div class="small-4 columns">
+      <a href="javascript://"
+        {{ bindAttr class=":button :prefix view.isButtonDisabled:disabled" }}
+        >Connect</a>
+    </div>
+    <div {{ bindAttr class=":small-8 :columns view.isErrorMessageVisible:error" }}>
+      {{ view App.ValidatedTextField
+      valueBinding=view.username
+      placeholder=username
+      }}
+      {{#unless view.isUsernameValid}}
+      {{#if view.isErrorMessageVisible}}
+        <small>{{ view.errorMessage }}</small>
+      {{/if}}
+      {{/unless}}
+    </div>
+  </div>
+</form>

@@ -11,6 +11,7 @@ App.IndexController = Ember.Controller.extend({
   username: ""
 
   connect: ->
+    console.log "connect"
     username = @get "username"
     return if @get("isUsernameInvalid")
     App.set("username", username)

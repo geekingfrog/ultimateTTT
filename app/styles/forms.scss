@@ -1,0 +1,7 @@
+input.invalid {
+  border: 2px solid $alert-color;
+
+  &:focus {
+    @include block-glowing-effect(focus, 300ms, darken($alert-color, 10%));
+  }
+}

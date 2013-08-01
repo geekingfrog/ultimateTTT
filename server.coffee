@@ -18,9 +18,9 @@ filter = (pattern, fun) ->
     if pattern.test(filename)
       fun(filename)
  
-watch('./app/', filter(/\.js$|\.css$|\.html$/i, _.debounce(->
+watch('./app', filter(/\.js$|\.css$|\.html$/i, _.debounce((->
   io.sockets.emit('reload')
-), 200))
+), 300)))
 
 
 

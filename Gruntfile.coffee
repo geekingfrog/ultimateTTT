@@ -27,20 +27,37 @@ module.exports = (grunt) ->
 
     bower: {
       install: {
-        targetDir: 'bower_components'
+        options: {
+          copy: false #already configured in .bowerrc
+          verbose: true
+          cleanup: false
+        }
+      }
+    }
+
+    sass: {
+      dev: {
+        options: {trace: true, style: 'expanded'}
+        files: {'app/styles/app.css':'app/styles/app.scss'}
       }
     }
 
     watch: {
       ember: {
-        files: '**/*.hbs'
+        files: 'app/**/*.hbs'
         tasks: ['emberTemplates']
+      }
+
+      sass: {
+        files: 'app/styles/**/*.scss'
+        tasks: ['sass']
       }
     }
   })
 
   grunt.loadNpmTasks 'grunt-contrib-watch'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
+  grunt.loadNpmTasks 'grunt-contrib-sass'
   grunt.loadNpmTasks 'grunt-ember-templates'
   grunt.loadNpmTasks 'grunt-bower-task'
 

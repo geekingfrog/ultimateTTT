@@ -1,8 +1,5 @@
 node_modules
-bower_components
+Gruntfile.js
+server.js
 
-*.js
-!ember.js
-!handlebars.js
-!jquery*.js
-
+.sass-cache

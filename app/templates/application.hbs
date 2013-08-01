@@ -1,9 +1,24 @@
-<div>
-  {{#linkTo "index"}}
-  Ultimate Tic Tac Toe online.
-  {{/linkTo}}
+<div class="header">
+  <div class="title">
+    <h1>
+      {{#linkTo "index"}}
+      Ultimate Tic Tac Toe online
+      {{/linkTo}}
+      <div class="header-cloud">
+    </h1>
+  </div>
 </div>
 
-<div class="row">
+<div class="container row">
   {{outlet}}
 </div>
+
+<footer>
+<a href="http://geekingfrog.com">
+<h3>Made by a geekingfrog</h3>
+</a>
+<br />
+<a href="https://github.com/geekingfrog/ultimateTTT">
+<i class="icon-2x icon-github"></i>
+</a>
+</footer>

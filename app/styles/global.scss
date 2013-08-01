@@ -1,0 +1,45 @@
+body {
+  //to put the footer at the very bottom
+  min-height: 100%;
+}
+
+.container {
+  padding-bottom: 125px; //height of the footer
+}
+
+.header {
+  width: 100%;
+  padding: 2em;
+  padding-left: 20%;
+  /* background-color: hsl(200, 40, 95); */
+  background-color: rgb(232,248,255);
+  background-image: url("../images/ttt0.png");
+  background-repeat: no-repeat;
+  background-position: 70%;
+  height: 200px;
+}
+
+footer {
+  height: 125px;
+  background-color: #18191b;
+  width: 100%;
+  margin-top: 20px;
+  padding-top: 10px;
+  text-align: center;
+  position: absolute;
+  bottom: 0;
+}
+
+footer a, h3 {
+  display: inline-block;
+  color: #aaa;
+  transition: color .8s;
+
+  &:hover {
+    color: white;
+  }
+}
+
+// footer a h3 {
+//   color: white;
+// }

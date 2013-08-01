@@ -22,8 +22,8 @@ App.GameController = Em.Controller.extend({
   reset: ->
     @set("board", Game.Board.createBoard())
 
-  board: Game.Board.materialize(stored)
-  # board: Game.Board.createBoard()
+  # board: Game.Board.materialize(stored)
+  board: Game.Board.createBoard()
 
   isWonByX: ( -> @get("board.wonBy") is 'x').property("board.wonBy")
   isWonByO: ( -> @get("board.wonBy") is 'o').property("board.wonBy")
@@ -112,7 +112,8 @@ App.GameController = Em.Controller.extend({
 
   markSquare: (square, domBlock) ->
     return unless domBlock.get("isPlayable")
-    return if @get("player.symbol") isnt @get("board.currentPlayer")
+    if @get("player.symbol") # true in case of multiplayer
+      return if @get("player.symbol") isnt @get("board.currentPlayer")
 
     square.set("markedBy", @get("currentPlayer"))
     player = App.get("currentPlayer")

@@ -18,10 +18,13 @@ $secondary-color: #2980b9; // belize hole
 @import "../bower_components/foundation/scss/foundation/components/keystrokes";
 @import "../bower_components/foundation/scss/foundation/components/alert-boxes";
 @import "../bower_components/foundation/scss/foundation/components/panels";
+@import "../bower_components/foundation/scss/foundation/components/inline-lists";
 
 
 
 // @import "./game.css";
+@import "./global.scss"; // header and footer
 @import "./board.scss"; // styling of the board to play
 // @import "./forms.scss"; // add some stuff (invalid input styling for example)
 @import "./chatroom.scss";
+

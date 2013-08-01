@@ -1,19 +1,19 @@
 "use strict"
 
 # For testing only
-# window.stored = {
-#   marks: [
-#     "x", "x", "x", null, null, null, null, null, "o",
-#     "x", "x", "x", null, null, null, null, null, null,
-#     "x", "x", null, null, null, null, null, null, null,
-#     null, null, null, null, "o", null, null, null, null,
-#     null, null, "o", null, "x", null, null, null, null,
-#     null, null, null, null, null, null, null, null, null,
-#     null, null, null, null, null, null, null, null, null,
-#     null, null, null, null, null, null, null, null, null,
-#     null, "x", null, null, null, null, null, null, null]
-#   lastMove: {x: 5, y: 3}
-# }
+window.stored = {
+  marks: [
+    "x", "x", "x", null, null, null, null, null, "o",
+    "x", "x", "x", null, null, null, null, null, null,
+    "x", "x", null, null, null, null, null, null, null,
+    null, null, null, null, "o", null, null, null, null,
+    null, null, "o", null, "x", null, null, null, null,
+    null, null, null, null, null, null, null, null, null,
+    null, null, null, null, null, null, null, null, null,
+    null, null, null, null, null, null, null, null, null,
+    null, "x", null, null, null, null, null, null, null]
+  lastMove: {x: 5, y: 3}
+}
 
 
 # controller to handle a board and the related actions
@@ -22,8 +22,8 @@ App.GameController = Em.Controller.extend({
   reset: ->
     @set("board", Game.Board.createBoard())
 
-  # board: Game.Board.materialize(stored)
-  board: Game.Board.createBoard()
+  board: Game.Board.materialize(stored)
+  # board: Game.Board.createBoard()
 
   isWonByX: ( -> @get("board.wonBy") is 'x').property("board.wonBy")
   isWonByO: ( -> @get("board.wonBy") is 'o').property("board.wonBy")

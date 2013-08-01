@@ -3,7 +3,7 @@
 App.IconSymbolView = Ember.View.extend({
   # template: Ember.Handlebars.compile("<i {{bindAttr class=view.iconSymbol}}></i>bla")
   template: Ember.Handlebars.compile(" ")
-  classNameBindings: [':icon-2x', 'iconSymbol']
+  classNameBindings: ['iconSymbol']
   tagName: 'i'
   iconSymbol: (->
     symbol = @get("symbol")

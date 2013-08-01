@@ -1,13 +1,13 @@
 {{#if clicked}}
   Are you sure ?
-  <div class="button" {{ action "cancelSurrender" }}>
+  <div class="small button" {{ action "cancelSurrender" }}>
     Never!
   </div>
-  <div class="button button-warning" {{ action "confirmSurrender" }}>
+  <div class="small button alert" {{ action "confirmSurrender" }}>
     Surrender...
   </div>
 {{else}}
-  <div class="button" {{ action "surrender"}}>
+  <div class="button small" {{ action "surrender"}}>
     Surrender
   </div>
 {{/if}}

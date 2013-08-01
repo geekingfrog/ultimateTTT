@@ -13,10 +13,15 @@ $secondary-color: #2980b9; // belize hole
 @import "../bower_components/foundation/scss/foundation/components/grid";
 @import "../bower_components/foundation/scss/foundation/components/type";
 @import "../bower_components/foundation/scss/foundation/components/buttons";
+@import "../bower_components/foundation/scss/foundation/components/button-groups";
 @import "../bower_components/foundation/scss/foundation/components/forms";
+@import "../bower_components/foundation/scss/foundation/components/keystrokes";
+@import "../bower_components/foundation/scss/foundation/components/alert-boxes";
+@import "../bower_components/foundation/scss/foundation/components/panels";
 
 
 
 // @import "./game.css";
 @import "./board.scss"; // styling of the board to play
 // @import "./forms.scss"; // add some stuff (invalid input styling for example)
+@import "./chatroom.scss";

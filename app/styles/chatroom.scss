@@ -1,0 +1,31 @@
+.chatroom {
+  height: emCalc(200px);
+  border: 1px solid black;
+  margin: 20px 0;
+  overflow: auto;
+  position: relative;
+}
+
+.chatroom ul {
+  list-style: none;
+  padding-left: 1em;
+}
+
+.players-list li {
+  list-style-type: none;
+  width: 100%;
+  display: block;
+  padding: 3px 1em;
+}
+
+.players-list li.inGame {
+  color: #aaa;
+}
+
+.players-list li i {
+  transition: color .5s;
+}
+
+.players-list li:not(.inGame):hover i {
+  color: $primary-color;
+}

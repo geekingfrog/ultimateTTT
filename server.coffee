@@ -22,6 +22,15 @@ watch('./app', filter(/\.js$|\.css$|\.html$/i, _.debounce((->
   io.sockets.emit('reload')
 ), 500)))
 
+catchThemAll = (fn) ->
+  return ->
+    try
+      fn.apply(this, arguments)
+    catch err
+      console.error err
+      if _.isFunction(this.emit)
+        console.log "emitting error"
+        this.emit("error", {error: "Server error !"})
 
 
 players = {}
@@ -51,26 +60,26 @@ io.sockets.on("connection", (socket) ->
     return
   )
 
-  socket.on("join", ({name}, cb) ->
+  socket.on("join", catchThemAll ({name}, cb) ->
     players[socket.id] = new Player(socket, name)
     socket.broadcast.emit("addPlayer", {player: players[socket.id].serialize()})
     cb({playersList: _.values(players).map( (p) -> p.serialize())})
   )
 
-  socket.on("getPlayersList", ->
+  socket.on("getPlayersList", catchThemAll ->
     socket.emit("playersList", {playersList: _.values(players).map((player) ->
       return player.serialize()
     )})
   )
 
-  socket.on("setName", ({name}) ->
+  socket.on("setName", catchThemAll ({name}) ->
     name = name or "-,..,-"
     players[socket.id].name = name
     socket.broadcast.emit("changeName", {id: socket.id, name: name})
     return
   )
 
-  socket.on("challenges", ({opponentId}, cb) ->
+  socket.on("challenges", catchThemAll ({opponentId}, cb) ->
     challenger = players[socket.id]
     challengee = players[opponentId]
     if challengee?
@@ -91,7 +100,7 @@ io.sockets.on("connection", (socket) ->
     return
   )
 
-  socket.on("declineChallenge", ({opponentId}) ->
+  socket.on("declineChallenge", catchThemAll ({opponentId}) ->
     player = players[socket.id]
     opponent = players[opponentId]
     player.state = "idle"
@@ -103,7 +112,7 @@ io.sockets.on("connection", (socket) ->
     ])
   )
 
-  socket.on("cancelChallenge", ({opponentId}) ->
+  socket.on("cancelChallenge", catchThemAll ({opponentId}) ->
     player = players[socket.id]
     opponent = players[opponentId]
     player.state = "idle"
@@ -115,22 +124,22 @@ io.sockets.on("connection", (socket) ->
     ])
   )
 
-  socket.on("acceptChallenge", ({opponentId}) ->
+  socket.on("acceptChallenge", catchThemAll ({opponentId}) ->
     challenger = players[opponentId]
     challengee = players[socket.id]
     challenger.socket.emit("challengeAccepted")
   )
 
-  socket.on("markSquare", (opts) ->
+  socket.on("markSquare", catchThemAll (opts) ->
     opponent = players[opts.opponentId]
     opponent.socket.emit("markSquare", opts)
   )
 
-  socket.on("postMsg", ({msg}) ->
+  socket.on("postMsg", catchThemAll ({msg}) ->
     socket.broadcast.emit("newMsg", ({msg: msg}))
   )
 
-  socket.on("postGameMsg", ({msg, opponentId}, cb) ->
+  socket.on("postGameMsg", catchThemAll ({msg, opponentId}, cb) ->
     opponent = players[opponentId]
     if opponent
       opponent.socket.emit("newGameMsg", ({msg: msg}))
@@ -140,7 +149,8 @@ io.sockets.on("connection", (socket) ->
     return
   )
 
-  socket.on("surrender", ({opponentId}) ->
+  socket.on("surrender", catchThemAll ({opponentId}) ->
+    console.log "this is socket ?", this is socket
     player = players[socket.id]
     opponent = players[opponentId]
     opponent.socket.emit("surrender")

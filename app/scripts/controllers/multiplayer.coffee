@@ -250,7 +250,7 @@ App.MultiplayerController = Ember.Controller.extend({
     if @get("currentPlayer.symbol") is wonBy
       toastr.info("You won !")
     else
-      toastr.info("Maybe next time...")
+      toastr.info("You lost. Maybe next time...")
     @finishGame()
     return
   ).observes("controllers.game.board.wonBy")

@@ -7,8 +7,14 @@
 
 </div>
 <form {{ action postMsg on="submit" }}>
-{{ input type=text value=msg size=30 }}
-<input type="submit" class="button" value="post"/>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <input type="submit" class="button prefix" value="post"/>
+    </div>
+    <div class="small-9 columns">
+      {{ input type=text value=msg }}
+    </div>
+  </div>
 </form>
 
 

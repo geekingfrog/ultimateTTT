@@ -15,7 +15,6 @@
 .block {
   float: left;
   overflow: auto;
-  /* width: 90px; */
   border: 1px solid black;
 }
 
@@ -59,7 +58,9 @@
 .marked {
   text-align: center;
   display: block;
-  font-size: 1.7em;
+  /* font-size: 1.5em; */
+  font-size: 28px;
+  overflow: hidden;
 }
 
 i.icon-remove {

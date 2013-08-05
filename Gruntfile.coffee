@@ -68,5 +68,6 @@ module.exports = (grunt) ->
   grunt.registerTask 'default', [
     'coffee'
     'emberTemplates'
+    'sass'
   ]
 

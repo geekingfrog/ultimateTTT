@@ -1,6 +1,5 @@
 /* html, body, .container { height: 100%; } */
 
-/* body > .container { height: auto; min-height: 100%; } */
 html, body {
   height: 100%;
 }
@@ -10,8 +9,9 @@ html, body {
   position: relative;
 }
 
-.container {
+.all-but-footer {
   padding-bottom: emCalc(120px); //height of the footer plus some space
+  overflow: hidden;
 }
 
 .header {
@@ -110,5 +110,4 @@ footer a, h3 {
   .mode-selection {
     margin-top: 0;
   }
-
 }

@@ -47,3 +47,68 @@ footer a, h3 {
     color: white;
   }
 }
+
+
+.intro {
+  text-align: center;
+  padding: 2em;
+  border-bottom: 1px solid darken(rgb(232,248,255), 20%);
+  border-top: 1px solid darken(rgb(232,248,255), 20%);
+  width: 100%;
+}
+
+.core {
+  padding: 2em;
+  padding-top: 0;
+}
+
+.mode-selection {
+  border: 2px solid $primary-color;
+  text-align: center;
+  padding: 1.5em 1em;
+  margin-top: 50px;
+
+  transition: border-color .7s;
+}
+
+.mode-selection:hover, .mode-selection:hover .icon {
+  border-color: $secondary-color;
+}
+
+.icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  margin-top: -65px;
+  padding: 0;
+  border: 4px solid $primary-color;
+  border-radius: 40px;
+  background-color: white;
+  transition: border-color .7s;
+}
+
+.hotseat .icon {
+  background-image: url(../images/hotseat.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 50px 50px;
+}
+
+.multiplayer .icon {
+  background-image: url(../images/multiplayer.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 50px 50px;
+}
+
+@media #{$small} {
+
+  .core {
+    padding-top: 50px;
+  }
+
+  .mode-selection {
+    margin-top: 0;
+  }
+
+}

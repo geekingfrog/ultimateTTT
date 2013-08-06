@@ -3,7 +3,7 @@
 
 App.IndexController = Ember.Controller.extend({
   isUsernameInvalid: (->
-    if @get("username").length < 5
+    if @get("username").length < 3
       return "Too short"
     else
       return false

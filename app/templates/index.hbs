@@ -1,23 +1,34 @@
-<div class="small-12 columns">
-  Welcome to Ultimate TicTacToe online !
-  <p>
-  If you don t know how to play the ultimate tic tac toe,
-  <a href="http://mathwithbaddrawings.com/2013/06/16/ultimate-tic-tac-toe/">here are the rules</a> (with some nice drawings ^^)
-  </p>
+<div class="intro">
+  <h2>New? Here are the <a href="http://mathwithbaddrawings.com/2013/06/16/ultimate-tic-tac-toe/"><i class="icon-book"></i> rules</a>.</h2>
+  <small>(with some nice drawings)</small>
 </div>
 
-<div class="small-6 columns">
-  {{#linkTo "hotseat"}}
-  Hot seat, play with your friend (or worse enemy) on the same computer.
-  {{/linkTo}}
-</div>
+<div class="row core">
 
-<div class="small-6 columns">
-  <p>
-    Multiplayer. Bring the power of the internet to challenge people all over the world.
-  </p>
-  <br />
+  <div class="large-5 columns mode-selection hotseat">
+    {{#linkTo "hotseat"}}
+      <div class="icon"> </div>
+    {{/linkTo}}
+    
+    <h4>
+    {{#linkTo "hotseat"}}
+      Hotseat
+    {{/linkTo}}
+    </h4>
 
-  {{ view App.ConnectView usernameBinding=username}}
+    Play with your friend (or worse enemy) on the same computer.
+  </div>
 
+  <div class="large-5 columns mode-selection multiplayer">
+    <div class="icon"> </div>
+
+    <h4>Multiplayer</h4>
+    <p>
+      Bring the power of the internet to challenge people all over the world.
+    </p>
+    <br />
+
+    {{ view App.ConnectView usernameBinding=username}}
+
+  </div>
 </div>

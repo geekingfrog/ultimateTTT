@@ -1,7 +1,6 @@
 // to force the removal of styling if waiting for opponent to play
 .inactive .board .cell {
   cursor: default !important;
-  background-color: rgba(125, 225, 125, .5) !important;
 }
 
 .board {

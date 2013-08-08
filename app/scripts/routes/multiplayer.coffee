@@ -9,4 +9,5 @@ App.MultiplayerRoute = Ember.Route.extend({
 
   setupController: (controller) ->
     controller.set("username", App.get("username"))
+    @controllerFor("game").reset()
 })
